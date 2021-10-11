@@ -3,7 +3,7 @@ from abc import ABC
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, MNIST, EMNIST, KMNIST, Omniglot, FashionMNIST
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST
 
 
 class CIFAR10Data(pl.LightningDataModule):
@@ -110,58 +110,6 @@ class CIFAR100Data(pl.LightningDataModule):
         return self.val_dataloader()
 
 
-class OmniglotData(pl.LightningDataModule):
-    def __init__(self, root_dir, batch_size, num_workers):
-        super().__init__()
-        self.root_dir = root_dir
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.mean = (0,)
-        self.std = (1,)
-        self.num_classes = 1623
-        self.in_channels = 1
-
-    def train_dataloader(self):
-        transform = transforms.Compose(
-            [
-                transforms.Resize((32, 32)),
-                transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
-            ]
-        )
-        dataset = Omniglot(root=self.root_dir, background=True, transform=transform, download=True)
-        dataloader = DataLoader(
-            dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=True,
-            drop_last=True,
-            pin_memory=True,
-        )
-        return dataloader
-
-    def val_dataloader(self):
-        transform = transforms.Compose(
-            [
-                transforms.Resize((32, 32)),
-                transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
-            ]
-        )
-        dataset = Omniglot(root=self.root_dir, background=False, transform=transform, download=True)
-        dataloader = DataLoader(
-            dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            drop_last=True,
-            pin_memory=True,
-        )
-        return dataloader
-
-    def test_dataloader(self):
-        return self.val_dataloader()
-
-
 class TensorData(pl.LightningDataModule):
     def __init__(self, data_class, root_dir, batch_size, num_workers):
         super().__init__()
@@ -247,7 +195,6 @@ all_datasets = {
     "cifar100": CIFAR100Data,
     "mnist": MNISTData,
     "kmnist": KMNISTData,
-    "omniglot": OmniglotData,
     "fashionmnist": FashionMNISTData
 }
 
