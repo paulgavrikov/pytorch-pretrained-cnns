@@ -66,7 +66,7 @@ class CIFAR100Data(pl.LightningDataModule):
         self.num_workers = num_workers
         self.mean = (0.50707516, 0.48654887, 0.44091784)
         self.std = (0.26733429, 0.25643846, 0.27615047)
-        self.num_classes = 10
+        self.num_classes = 100
         self.in_channels = 3
 
     def train_dataloader(self):
