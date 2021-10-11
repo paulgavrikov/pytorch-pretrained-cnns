@@ -124,6 +124,7 @@ class OmniglotData(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -142,6 +143,7 @@ class OmniglotData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
