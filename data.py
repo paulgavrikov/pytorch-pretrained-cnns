@@ -171,8 +171,10 @@ class TensorData(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
+
             ]
         )
         dataset = self.data_class(root=self.root_dir, train=True, transform=transform, download=True)
@@ -189,6 +191,7 @@ class TensorData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
