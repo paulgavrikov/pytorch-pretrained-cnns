@@ -12,8 +12,8 @@ class CIFAR10Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.4914, 0.4822, 0.4465)
-        self.std = (0.2471, 0.2435, 0.2616)
+        self.mean = (0.49139968, 0.48215841, 0.44653091)
+        self.std = (0.24703223, 0.24348513, 0.26158784)
         self.num_classes = 10
         self.in_channels = 3
 
@@ -64,8 +64,8 @@ class CIFAR100Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.4914, 0.4822, 0.4465)
-        self.std = (0.2471, 0.2435, 0.2616)
+        self.mean = (0.50707516, 0.48654887, 0.44091784)
+        self.std = (0.26733429, 0.25643846, 0.27615047)
         self.num_classes = 10
         self.in_channels = 3
 
@@ -226,8 +226,8 @@ class KMNISTData(TensorData):
 
     def __init__(self, root_dir, batch_size, num_workers):
         super().__init__(KMNIST, root_dir, batch_size, num_workers)
-        self.mean = (0,)
-        self.std = (1,)
+        self.mean = (0.1918,)
+        self.std = (0.3483,)
         self.num_classes = 49
         self.in_channels = 1
 
@@ -236,8 +236,8 @@ class FashionMNISTData(TensorData):
 
     def __init__(self, root_dir, batch_size, num_workers):
         super().__init__(FashionMNIST, root_dir, batch_size, num_workers)
-        self.mean = (0,)
-        self.std = (1,)
+        self.mean = (0.2860,)
+        self.std = (0.3530,)
         self.num_classes = 10
         self.in_channels = 1
 
