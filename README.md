@@ -25,11 +25,7 @@
 
 ## CIFAR-100
 
-## Omniglot
-
 ## MNIST
-
-## EMNIST
 
 ## KMNIST
 
