@@ -27,7 +27,7 @@ def start_training(args):
 
     logger = CSVLogger(args["dataset"], args["classifier"])
         
-    checkpoint = MyCheckpoint(monitor="acc_max/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
+    checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
                               period=1)
 
     trainer = Trainer(
