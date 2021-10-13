@@ -1,10 +1,15 @@
 # pytorch-pretrained-cnns
 
+## Reproduce training
+```
+python train.py --data_dir /data/datasets/ --classifier <Classifier Name> --dataset <Dataset Name> --batch_size 256 --gpu_id <GPU ID> --num_workers 8
+```
+
 
 ## CIFAR-10
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
-|---:|---:|---:|---:|---:|---:|
+|:---|---:|---:|---:|---:|---:|
 | lowres_alexnet | 95 | 0.563 | 80.717 | 0.604 | 79.297 |
 | lowres_densenet121 | 96 | 0.047 | 99.716 | 0.247 | 93.780 |
 | lowres_densenet161 | 97 | 0.042 | 99.830 | 0.232 | 94.311 |
@@ -32,7 +37,7 @@
 ## CIFAR-100
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
-|---:|---:|---:|---:|---:|---:|
+|:---|---:|---:|---:|---:|---:|
 | lowres_alexnet | 4 | 4.605 | 0.919 | 4.605 | 1.122 |
 | lowres_densenet121 | 94 | 0.192 | 98.678 | 1.082 | 75.040 |
 | lowres_densenet161 | 98 | 0.171 | 99.373 | 1.044 | 76.412 |
@@ -60,7 +65,7 @@
 ## MNIST
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
-|---:|---:|---:|---:|---:|---:|
+|:---|---:|---:|---:|---:|---:|
 | lowres_alexnet | 86 | 0.053 | 98.444 | 0.045 | 98.668 |
 | lowres_densenet121 | 92 | 0.035 | 99.980 | 0.044 | 99.579 |
 | lowres_densenet161 | 93 | 0.035 | 99.983 | 0.043 | 99.609 |
@@ -88,7 +93,7 @@
 ## KMNIST
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
-|---:|---:|---:|---:|---:|---:|
+|:---|---:|---:|---:|---:|---:|
 | lowres_alexnet | 97 | 0.047 | 98.775 | 0.191 | 94.872 |
 | lowres_densenet121 | 88 | 0.037 | 99.982 | 0.092 | 98.668 |
 | lowres_densenet161 | 87 | 0.038 | 99.972 | 0.084 | 98.688 |
@@ -116,7 +121,7 @@
 ## Fashion-MNIST
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
-|---:|---:|---:|---:|---:|---:|
+|:---|---:|---:|---:|---:|---:|
 | lowres_alexnet | 97 | 0.296 | 89.248 | 0.308 | 89.042 |
 | lowres_densenet121 | 92 | 0.037 | 99.947 | 0.266 | 93.950 |
 | lowres_densenet161 | 93 | 0.038 | 99.937 | 0.264 | 94.171 |
