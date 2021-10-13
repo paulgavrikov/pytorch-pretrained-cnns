@@ -4,7 +4,9 @@
 ```
 python train.py --data_dir /data/datasets/ --classifier <Classifier Name> --dataset <Dataset Name> --batch_size 256 --gpu_id <GPU ID> --num_workers 8
 ```
+## Checkpoints
 
+https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 
 ## CIFAR-10
 
