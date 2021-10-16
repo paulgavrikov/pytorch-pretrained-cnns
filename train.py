@@ -25,7 +25,7 @@ def start_training(args):
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state["state_dict"].items()))
 
-    logger = CSVLogger(args["dataset"], args["classifier"])
+    logger = CSVLogger(args["dataset"], args["classifier"] + args["postfix"])
         
     checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
                               period=1)
@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("--classifier", type=str, default="lowres_resnet9")
     parser.add_argument("--dataset", type=str, default="omniglot")
     parser.add_argument("--load_checkpoint", type=str, default=None)
+    parser.add_argument("--postfix", type=str, default="")
 
     parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     parser.add_argument("--batch_size", type=int, default=512)
