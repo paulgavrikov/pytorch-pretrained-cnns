@@ -8,7 +8,7 @@ python train.py --data_dir /data/datasets/ --classifier <Classifier Name> --data
 
 https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 
-## CIFAR-10
+## cifar10
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
 |:---|---:|---:|---:|---:|---:|
@@ -27,16 +27,16 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 | lowres_resnet34 | 99 | 0.027 | 99.714 | 0.253 | 93.399 |
 | lowres_resnet50 | 97 | 0.039 | 99.473 | 0.227 | 93.780 |
 | lowres_resnet9 | 93 | 0.016 | 99.996 | 0.174 | 94.792 |
-| lowres_vgg11 | 95 | 0.024 | 99.860 | 0.254 | 92.258 |
+| lowres_vgg11 | 96 | 0.581 | 80.617 | 0.703 | 76.112 |
 | lowres_vgg11_bn | 95 | 0.024 | 99.860 | 0.254 | 92.258 |
-| lowres_vgg13 | 98 | 0.021 | 99.942 | 0.198 | 94.111 |
+| lowres_vgg13 | 94 | 1.597 | 34.415 | 1.595 | 35.306 |
 | lowres_vgg13_bn | 98 | 0.021 | 99.942 | 0.198 | 94.111 |
-| lowres_vgg16 | 99 | 0.021 | 99.912 | 0.228 | 93.930 |
+| lowres_vgg16 | 5 | 2.303 | 10.607 | 2.302 | 18.189 |
 | lowres_vgg16_bn | 99 | 0.021 | 99.912 | 0.228 | 93.930 |
-| lowres_vgg19 | 97 | 0.022 | 99.878 | 0.242 | 93.800 |
+| lowres_vgg19 | 6 | 2.303 | 10.268 | 2.303 | 13.341 |
 | lowres_vgg19_bn | 97 | 0.022 | 99.878 | 0.242 | 93.800 |
 
-## CIFAR-100
+## cifar100
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
 |:---|---:|---:|---:|---:|---:|
@@ -55,16 +55,16 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 | lowres_resnet34 | 97 | 0.103 | 99.165 | 1.161 | 72.546 |
 | lowres_resnet50 | 96 | 0.131 | 98.834 | 1.062 | 74.159 |
 | lowres_resnet9 | 91 | 0.075 | 99.806 | 1.000 | 75.591 |
-| lowres_vgg11 | 98 | 0.095 | 99.303 | 1.307 | 69.621 |
+| lowres_vgg11 | 9 | 4.605 | 0.976 | 4.605 | 1.913 |
 | lowres_vgg11_bn | 98 | 0.095 | 99.303 | 1.307 | 69.621 |
-| lowres_vgg13 | 94 | 0.088 | 99.393 | 1.158 | 73.017 |
+| lowres_vgg13 | 8 | 4.605 | 1.016 | 4.605 | 1.673 |
 | lowres_vgg13_bn | 94 | 0.088 | 99.393 | 1.158 | 73.017 |
-| lowres_vgg16 | 96 | 0.110 | 98.702 | 1.267 | 72.907 |
+| lowres_vgg16 | 6 | 4.605 | 0.968 | 4.605 | 1.542 |
 | lowres_vgg16_bn | 96 | 0.110 | 98.702 | 1.267 | 72.907 |
-| lowres_vgg19 | 96 | 0.136 | 97.917 | 1.349 | 71.945 |
+| lowres_vgg19 | 2 | 4.605 | 0.958 | 4.605 | 1.242 |
 | lowres_vgg19_bn | 96 | 0.136 | 97.917 | 1.349 | 71.945 |
 
-## MNIST
+## mnist
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
 |:---|---:|---:|---:|---:|---:|
@@ -83,16 +83,16 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 | lowres_resnet34 | 79 | 0.019 | 99.977 | 0.029 | 99.609 |
 | lowres_resnet50 | 86 | 0.020 | 99.982 | 0.032 | 99.559 |
 | lowres_resnet9 | 83 | 0.006 | 99.998 | 0.016 | 99.679 |
-| lowres_vgg11 | 75 | 0.017 | 99.995 | 0.027 | 99.639 |
+| lowres_vgg11 | 75 | 0.051 | 98.589 | 0.053 | 98.538 |
 | lowres_vgg11_bn | 75 | 0.017 | 99.995 | 0.027 | 99.639 |
-| lowres_vgg13 | 90 | 0.017 | 99.998 | 0.026 | 99.649 |
+| lowres_vgg13 | 80 | 0.026 | 99.344 | 0.046 | 98.788 |
 | lowres_vgg13_bn | 90 | 0.017 | 99.998 | 0.026 | 99.649 |
-| lowres_vgg16 | 90 | 0.017 | 99.992 | 0.026 | 99.639 |
+| lowres_vgg16 | 0 | 2.302 | 10.383 | 2.302 | 14.153 |
 | lowres_vgg16_bn | 90 | 0.017 | 99.992 | 0.026 | 99.639 |
-| lowres_vgg19 | 85 | 0.017 | 99.988 | 0.027 | 99.649 |
+| lowres_vgg19 | 0 | 2.303 | 11.116 | 2.302 | 11.348 |
 | lowres_vgg19_bn | 85 | 0.017 | 99.988 | 0.027 | 99.649 |
 
-## KMNIST
+## kmnist
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
 |:---|---:|---:|---:|---:|---:|
@@ -111,16 +111,16 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 | lowres_resnet34 | 83 | 0.018 | 99.998 | 0.081 | 98.538 |
 | lowres_resnet50 | 80 | 0.020 | 99.982 | 0.097 | 98.067 |
 | lowres_resnet9 | 54 | 0.008 | 99.997 | 0.069 | 98.528 |
-| lowres_vgg11 | 62 | 0.016 | 99.998 | 0.078 | 98.427 |
+| lowres_vgg11 | 93 | 0.028 | 99.619 | 0.264 | 93.059 |
 | lowres_vgg11_bn | 62 | 0.016 | 99.998 | 0.078 | 98.427 |
-| lowres_vgg13 | 54 | 0.016 | 99.980 | 0.069 | 98.698 |
+| lowres_vgg13 | 84 | 0.016 | 99.825 | 0.240 | 93.970 |
 | lowres_vgg13_bn | 54 | 0.016 | 99.980 | 0.069 | 98.698 |
-| lowres_vgg16 | 79 | 0.015 | 99.998 | 0.070 | 98.698 |
+| lowres_vgg16 | 75 | 0.024 | 99.484 | 0.266 | 93.560 |
 | lowres_vgg16_bn | 79 | 0.015 | 99.998 | 0.070 | 98.698 |
-| lowres_vgg19 | 99 | 0.015 | 99.998 | 0.078 | 98.518 |
+| lowres_vgg19 | 69 | 0.042 | 98.740 | 0.321 | 92.358 |
 | lowres_vgg19_bn | 99 | 0.015 | 99.998 | 0.078 | 98.518 |
 
-## Fashion-MNIST
+## fashionmnist
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
 |:---|---:|---:|---:|---:|---:|
@@ -139,13 +139,13 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 | lowres_resnet34 | 96 | 0.018 | 99.993 | 0.261 | 93.910 |
 | lowres_resnet50 | 89 | 0.019 | 99.985 | 0.261 | 93.810 |
 | lowres_resnet9 | 63 | 0.009 | 99.998 | 0.203 | 94.071 |
-| lowres_vgg11 | 91 | 0.017 | 100.000 | 0.229 | 93.600 |
+| lowres_vgg11 | 99 | 0.324 | 88.221 | 0.357 | 87.260 |
 | lowres_vgg11_bn | 91 | 0.017 | 100.000 | 0.229 | 93.600 |
-| lowres_vgg13 | 80 | 0.017 | 99.998 | 0.211 | 94.111 |
+| lowres_vgg13 | 98 | 0.273 | 90.009 | 0.332 | 87.640 |
 | lowres_vgg13_bn | 80 | 0.017 | 99.998 | 0.211 | 94.111 |
-| lowres_vgg16 | 86 | 0.018 | 99.995 | 0.226 | 94.030 |
+| lowres_vgg16 | 6 | 2.302 | 13.391 | 2.302 | 22.706 |
 | lowres_vgg16_bn | 86 | 0.018 | 99.995 | 0.226 | 94.030 |
-| lowres_vgg19 | 95 | 0.018 | 99.987 | 0.244 | 93.960 |
+| lowres_vgg19 | 1 | 2.303 | 10.607 | 2.302 | 17.328 |
 | lowres_vgg19_bn | 95 | 0.018 | 99.987 | 0.244 | 93.960 |
 
 # Credits
