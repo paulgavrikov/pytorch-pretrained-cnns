@@ -8,6 +8,10 @@ python train.py --data_dir /data/datasets/ --classifier <Classifier Name> --data
 
 https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw
 
+## Overview
+
+![Validation accuracy per model and dataset](./assets/validation.png)
+
 ## cifar10
 
 | Model | Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy |
