@@ -1,5 +1,4 @@
 torch
 torchvision
 pytorch-lightning==1.1.8
-ray[default]
 tensorboardX
