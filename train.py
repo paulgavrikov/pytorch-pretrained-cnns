@@ -25,7 +25,7 @@ def start_training(args):
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state["state_dict"].items()))
 
-    logger = CSVLogger(args["dataset"], args["classifier"] + args["postfix"])
+    logger = CSVLogger("output/" + args["dataset"], args["classifier"] + args["postfix"])
         
     checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
                               period=1)
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=float, default=1e-2)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
+    parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
 
     parser.add_argument("--seed", type=int, default=0)
 
