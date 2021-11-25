@@ -1,6 +1,4 @@
-import torch
 import torch.nn as nn
-import os
 
 __all__ = [
     "LowResResNet",
@@ -10,7 +8,15 @@ __all__ = [
     "lowres_resnet34",
     "lowres_resnet50",
     "lowres_resnet101",
-    "lowres_resnet152"
+    "lowres_resnet152",
+    "lowres_preact_resnet14",
+    "lowres_preact_resnet18",
+    "lowres_preact_resnet18_noresidual",
+    "lowres_preact_resnet34",
+    "lowres_wide_resnet50_2",
+    "lowres_wide_resnet101_2",
+    "lowres_resnext50_32x4d",
+    "lowres_resnext101_32x8d"
 ]
 
 
@@ -116,7 +122,6 @@ class Bottleneck(nn.Module):
         self.stride = stride
         self.skip_residual = skip_residual
 
-
     def forward(self, x):
         identity = x
 
@@ -137,6 +142,54 @@ class Bottleneck(nn.Module):
 
             out += identity
         out = self.relu(out)
+
+        return out
+
+
+class PreactBasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
+                 base_width=64, dilation=1, norm_layer=None):
+        super(PreactBasicBlock, self).__init__()
+
+        if norm_layer is None:
+            norm_layer = nn.BatchNorm2d
+
+        if groups != 1 or base_width != 64:
+            raise ValueError('BasicBlock only supports groups=1 and base_width=64')
+
+        if dilation > 1:
+            raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
+
+        # Both self.conv1 and self.downsample layers downsample the input when stride != 1
+
+        self.bn1 = nn.BatchNorm2d(inplanes)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv1 = conv3x3(inplanes, planes, stride)
+
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.conv2 = conv3x3(planes, planes)
+
+        self.downsample = downsample
+        self.stride = stride
+
+    def forward(self, x):
+        identity = x
+
+        out = self.bn1(x)
+        out = self.relu1(out)
+        out = self.conv1(out)
+
+        out = self.bn2(out)
+        out = self.relu2(out)
+        out = self.conv2(out)
+
+        if self.downsample is not None:
+            identity = self.downsample(x)
+
+        out += identity
 
         return out
 
@@ -316,3 +369,75 @@ def lowres_resnet101(**kwargs):
 def lowres_resnet152(**kwargs):
     """Constructs a ResNet-152 model."""
     return _resnet(Bottleneck, [3, 8, 36, 3], **kwargs)
+
+
+# ResNeXt
+
+
+def lowres_resnext50_32x4d(**kwargs):
+    r"""ResNeXt-50 32x4d model from
+    `"Aggregated Residual Transformation for Deep Neural Networks" <https://arxiv.org/pdf/1611.05431.pdf>`_.
+    """
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 4
+    return _resnet(Bottleneck, [3, 4, 6, 3], **kwargs)
+
+
+def lowres_resnext101_32x8d(**kwargs):
+    r"""ResNeXt-101 32x8d model from
+    `"Aggregated Residual Transformation for Deep Neural Networks" <https://arxiv.org/pdf/1611.05431.pdf>`_.
+    """
+    kwargs["groups"] = 32
+    kwargs["width_per_group"] = 8
+    return _resnet(Bottleneck, [3, 4, 23, 3], **kwargs)
+
+
+# Wide
+
+
+def lowres_wide_resnet50_2(**kwargs):
+    r"""Wide ResNet-50-2 model from
+    `"Wide Residual Networks" <https://arxiv.org/pdf/1605.07146.pdf>`_.
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    """
+    kwargs["width_per_group"] = 64 * 2
+    return _resnet(Bottleneck, [3, 4, 6, 3], **kwargs)
+
+
+def lowres_wide_resnet101_2(**kwargs):
+    r"""Wide ResNet-101-2 model from
+    `"Wide Residual Networks" <https://arxiv.org/pdf/1605.07146.pdf>`_.
+    The model is the same as ResNet except for the bottleneck number of channels
+    which is twice larger in every block. The number of channels in outer 1x1
+    convolutions is the same, e.g. last block in ResNet-50 has 2048-512-2048
+    channels, and in Wide ResNet-50-2 has 2048-1024-2048.
+    """
+    kwargs["width_per_group"] = 64 * 2
+    return _resnet(Bottleneck, [3, 4, 23, 3], **kwargs)
+
+
+# Pre-Act
+
+
+def lowres_preact_resnet14(**kwargs):
+    """Constructs a Pre-Act ResNet-14 model."""
+    return _resnet(PreactBasicBlock, [2, 2, 2], **kwargs)
+
+
+def lowres_preact_resnet18_noresidual(**kwargs):
+    """Constructs a Pre-Act ResNet-18 model without residual connections."""
+    return _resnet(PreactBasicBlock, [2, 2, 2, 2], skip_residual=True, **kwargs)
+
+
+def lowres_preact_resnet18(**kwargs):
+    """Constructs a Pre-Act ResNet-18 model."""
+    return _resnet(PreactBasicBlock, [2, 2, 2, 2], **kwargs)
+
+
+def lowres_preact_resnet34(**kwargs):
+    """Constructs a Pre-Act ResNet-34 model."""
+    return _resnet(PreactBasicBlock, [3, 4, 6, 3], **kwargs)
+
