@@ -45,7 +45,8 @@ class TrainModule(pl.LightningModule):
         
         self.log("acc_max/val", self.acc_max)
         self.log("acc/val", acc)
-
+        
+        print(acc)
         self.accuracy.reset()
 
     def test_step(self, batch, batch_nb):
@@ -53,19 +54,28 @@ class TrainModule(pl.LightningModule):
         self.log("acc/test", accuracy)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(
-            self.model.parameters(),
-            lr=self.hparams["learning_rate"],
-            weight_decay=self.hparams["weight_decay"],
-            momentum=self.hparams["momentum"],
-            nesterov=True
-        )
+        if self.hparams["optimizer"] == "sgd":
+            optimizer = torch.optim.SGD(
+                self.model.parameters(),
+                lr=self.hparams["learning_rate"],
+                weight_decay=self.hparams["weight_decay"],
+                momentum=self.hparams["momentum"],
+                nesterov=True
+            )
 
-        total_steps = self.hparams["max_epochs"] * len(self.train_dataloader())
-        scheduler = {
-            "scheduler": WarmupCosineLR(optimizer, warmup_epochs=total_steps * 0.3, max_epochs=total_steps),
-            "interval": "step",
-            "name": "learning_rate",
-        }
+            total_steps = self.hparams["max_epochs"] * len(self.train_dataloader())
+            scheduler = {
+                "scheduler": WarmupCosineLR(optimizer, warmup_epochs=total_steps * 0.3, max_epochs=total_steps),
+                "interval": "step",
+                "name": "learning_rate",
+            }
 
-        return [optimizer], [scheduler]
+            return [optimizer], [scheduler]
+        else:
+            optimizer = torch.optim.Adam(
+                self.model.parameters(),
+                lr=self.hparams["learning_rate"],
+                weight_decay=self.hparams["weight_decay"]
+            )
+
+            return [optimizer], []
