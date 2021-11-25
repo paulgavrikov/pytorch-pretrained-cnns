@@ -298,4 +298,4 @@ https://mega.nz/folder/gxchzYyb#wrHGXqyw29fk8b6VI0Gfiw (only 32-bit)
 
 # Credits
 
-Code partially taken from https://github.com/huyvnphan/PyTorch_CIFAR10.
+Code partially taken from https://github.com/huyvnphan/PyTorch_CIFAR10, https://github.com/1M50RRY/resnet18-preact, https://github.com/pytorch/vision/.
