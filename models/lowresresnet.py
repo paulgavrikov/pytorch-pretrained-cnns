@@ -150,7 +150,7 @@ class PreactBasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1,
-                 base_width=64, dilation=1, norm_layer=None):
+                 base_width=64, dilation=1, norm_layer=None, skip_residual=False):
         super(PreactBasicBlock, self).__init__()
 
         if norm_layer is None:
@@ -174,6 +174,7 @@ class PreactBasicBlock(nn.Module):
 
         self.downsample = downsample
         self.stride = stride
+        self.skip_residual = skip_residual
 
     def forward(self, x):
         identity = x
@@ -186,8 +187,9 @@ class PreactBasicBlock(nn.Module):
         out = self.relu2(out)
         out = self.conv2(out)
 
-        if self.downsample is not None:
-            identity = self.downsample(x)
+        if not self.skip_residual:
+            if self.downsample is not None:
+                identity = self.downsample(x)
 
         out += identity
 
