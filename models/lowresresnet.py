@@ -11,7 +11,6 @@ __all__ = [
     "lowres_resnet152",
     "lowres_preact_resnet14",
     "lowres_preact_resnet18",
-    "lowres_preact_resnet18_noresidual",
     "lowres_preact_resnet34",
     "lowres_wide_resnet50_2",
     "lowres_wide_resnet101_2",
@@ -164,11 +163,11 @@ class PreactBasicBlock(nn.Module):
 
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
 
-        self.bn1 = nn.BatchNorm2d(inplanes)
+        self.bn1 = norm_layer(inplanes)
         self.relu1 = nn.ReLU(inplace=True)
         self.conv1 = conv3x3(inplanes, planes, stride)
 
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.bn2 = norm_layer(planes)
         self.relu2 = nn.ReLU(inplace=True)
         self.conv2 = conv3x3(planes, planes)
 
@@ -427,11 +426,6 @@ def lowres_wide_resnet101_2(**kwargs):
 def lowres_preact_resnet14(**kwargs):
     """Constructs a Pre-Act ResNet-14 model."""
     return _resnet(PreactBasicBlock, [2, 2, 2], **kwargs)
-
-
-def lowres_preact_resnet18_noresidual(**kwargs):
-    """Constructs a Pre-Act ResNet-18 model without residual connections."""
-    return _resnet(PreactBasicBlock, [2, 2, 2, 2], skip_residual=True, **kwargs)
 
 
 def lowres_preact_resnet18(**kwargs):
