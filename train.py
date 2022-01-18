@@ -7,12 +7,16 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import CSVLogger
 from module import TrainModule
 import data as datasets
+import models
 from utils import *
 import logging
 logging.getLogger('lightning').setLevel(0)
 
 
 def start_training(args):
+    seed_everything(args["seed"])
+    os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
+        
     data_dir = os.path.join(args["data_dir"], args["dataset"])
     data = datasets.get_dataset(args["dataset"])(data_dir, args["batch_size"], args["num_workers"])
 
@@ -25,7 +29,7 @@ def start_training(args):
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state["state_dict"].items()))
 
-    logger = CSVLogger("output/" + args["dataset"], args["classifier"] + args["postfix"])
+    logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
         
     checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
                               period=1)
@@ -34,7 +38,7 @@ def start_training(args):
         fast_dev_run=False,
         logger=logger,
         gpus=-1,
-        deterministic=True,
+        deterministic=args["cudnn_deterministic"] == 1,
         weights_summary=None,
         log_every_n_steps=1,
         max_epochs=args["max_epochs"],
@@ -46,18 +50,30 @@ def start_training(args):
 
     trainer.fit(model, data)
 
-
+def dump_info():
+    print("Available models:")
+    for x in models.all_classifiers.keys():
+        print(f"\t{x}")
+    print()
+    print("Available data sets:")
+    for x in datasets.all_datasets.keys():
+        print(f"\t{x}")
+    
+    
 def main(args):
     if type(args) is not dict:
         args = vars(args)
 
-    seed_everything(args["seed"])
-    os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
-    start_training(args)
+    if args["info"] == False:
+        start_training(args)
+    else:
+        dump_info()
 
         
 if __name__ == "__main__":
     parser = ArgumentParser()
+    
+    parser.add_argument("--info", default=False)
 
     parser.add_argument("--data_dir", type=str, default="./datasets")
     parser.add_argument("--params", type=str, default=None)  # load params from json
@@ -66,18 +82,22 @@ if __name__ == "__main__":
     parser.add_argument("--classifier", type=str, default="lowres_resnet9")
     parser.add_argument("--dataset", type=str, default="omniglot")
     parser.add_argument("--load_checkpoint", type=str, default=None)
+    parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
 
     parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--max_epochs", type=int, default=100)
     parser.add_argument("--num_workers", type=int, default=os.cpu_count())
+    parser.add_argument("--cudnn_deterministic", type=bool, default=True)
     parser.add_argument("--gpu_id", type=str, default="0")
+    
 
     parser.add_argument("--learning_rate", type=float, default=1e-2)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
     parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
+    parser.add_argument("--aux_loss", type=int, default=0, choices=[0, 1])
 
     parser.add_argument("--seed", type=int, default=0)
 
@@ -85,7 +105,7 @@ if __name__ == "__main__":
     
     if _args.params is not None:
         json_args = argparse.Namespace()
-        with open(_args.params, 'r') as f:
+        with open(_args.params, "r") as f:
             json_args.__dict__ = json.load(f)
 
         _args = parser.parse_args(namespace=json_args)
