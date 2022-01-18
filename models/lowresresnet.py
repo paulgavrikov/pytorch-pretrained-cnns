@@ -9,6 +9,8 @@ __all__ = [
     "lowres_resnet50",
     "lowres_resnet101",
     "lowres_resnet152",
+    "lowres_resnet200",
+    "lowres_resnet1202",
     "lowres_preact_resnet14",
     "lowres_preact_resnet18",
     "lowres_preact_resnet34",
@@ -341,6 +343,9 @@ def lowres_resnet14(**kwargs):
     """Constructs a ResNet-14 model."""
     return _resnet(BasicBlock, [2, 2, 2], **kwargs)
 
+def lowres_resnet1202(**kwargs):
+    """Constructs a ResNet-1202 model."""
+    return _resnet(BasicBlock, [200, 200, 200], **kwargs)
 
 def lowres_resnet18_noresidual(**kwargs):
     """Constructs a ResNet-18 model without residual connections."""
@@ -371,6 +376,9 @@ def lowres_resnet152(**kwargs):
     """Constructs a ResNet-152 model."""
     return _resnet(Bottleneck, [3, 8, 36, 3], **kwargs)
 
+def lowres_resnet200(**kwargs):
+    """Constructs a ResNet-200 model."""
+    return _resnet(Bottleneck, [3, 24, 36, 3], **kwargs)
 
 # ResNeXt
 
