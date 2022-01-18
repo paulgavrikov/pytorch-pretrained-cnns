@@ -1,6 +1,6 @@
 import pytorch_lightning as pl
 import torch
-from pytorch_lightning.metrics import Accuracy
+from torchmetrics import Accuracy
 from scheduler import WarmupCosineLR
 import numpy as np
 import models
@@ -18,8 +18,16 @@ class TrainModule(pl.LightningModule):
         
     def forward(self, batch):
         images, labels = batch
-        predictions = self.model(images)
-        loss = torch.nn.CrossEntropyLoss()(predictions, labels)
+        if self.hparams["aux_loss"] == 0 or not self.model.training:
+            predictions = self.model(images)
+            loss = torch.nn.CrossEntropyLoss()(predictions, labels)
+        else:
+            predictions, aux_outputs = self.model(images)
+            loss = torch.nn.CrossEntropyLoss()(predictions, labels) ** 2
+            for aux_output in aux_outputs:
+                loss += torch.nn.CrossEntropyLoss()(aux_output, labels) ** 2
+            loss = torch.sqrt(loss)
+            
         accuracy = self.accuracy(predictions, labels)
         return loss, accuracy * 100
 
