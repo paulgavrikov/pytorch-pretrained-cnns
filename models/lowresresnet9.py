@@ -2,6 +2,7 @@ import torch.nn as nn
 
 __all__ = [
     "lowres_resnet9",
+    "lowres_auxresnet9",
 ]
 
 
@@ -29,7 +30,7 @@ class ResidualBlock(nn.Module):
         else:
             self.downsample = None
 
-        self.relu = nn.ReLU(inplace=False)
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
         residual = x
@@ -41,7 +42,7 @@ class ResidualBlock(nn.Module):
             residual = self.downsample(residual)
 
         out = self.relu(out)
-        out += residual
+        out = out + residual
         return out
 
 
@@ -82,5 +83,61 @@ class LowResResNet9(nn.Module):
         return out
 
 
+class LowResAuxResNet9(nn.Module):
+    """
+    A Residual network.
+    """
+    def __init__(self, in_channels=3, num_classes=10):
+        super(LowResAuxResNet9, self).__init__()
+
+        self.layers = nn.ModuleList([
+            nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=64, momentum=0.1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=128, momentum=0.1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            ResidualBlock(in_channels=128, out_channels=128, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=256, momentum=0.1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(num_features=512, momentum=0.1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            ResidualBlock(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            nn.MaxPool2d(kernel_size=4, stride=4),
+            nn.Flatten()
+        ])
+        
+        self.aux_layers = nn.ModuleList([nn.Sequential(nn.Flatten(), nn.LazyLinear(num_classes)) for module in self.layers if type(module) == nn.Conv2d])
+
+        self.fc = nn.Linear(in_features=512, out_features=num_classes, bias=False)
+
+    def forward(self, x):
+        
+        aux_outs = []
+        out = x
+        i = 0
+
+        for module in self.layers:
+            out = module(out)
+            if self.training and type(module) == nn.Conv2d:
+                aux_out = self.aux_layers[i](out)
+                aux_outs.append(aux_out)
+                i += 1
+        
+        out = self.fc(out)
+        
+        if self.training:
+            return out, aux_outs
+        else:
+            return out
+    
 def lowres_resnet9(**kwargs):
     return LowResResNet9(**kwargs)
+
+def lowres_auxresnet9(**kwargs):
+    return LowResAuxResNet9(**kwargs)
