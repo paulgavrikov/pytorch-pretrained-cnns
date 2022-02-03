@@ -3,7 +3,7 @@ from abc import ABC
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder
 
 
 class CIFAR10Data(pl.LightningDataModule):
@@ -108,6 +108,57 @@ class CIFAR100Data(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+    
+class CINIC10Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.47889522, 0.47227842, 0.43047404)  # from https://github.com/BayesWatch/cinic-10
+        self.std = (0.24205776, 0.23828046, 0.25874835)
+        self.num_classes = 10
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=os.path.append(self.root_dir, "train"), transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=os.path.append(self.root_dir, "valid"), transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
 
 
 class TensorData(pl.LightningDataModule):
@@ -195,7 +246,8 @@ all_datasets = {
     "cifar100": CIFAR100Data,
     "mnist": MNISTData,
     "kmnist": KMNISTData,
-    "fashionmnist": FashionMNISTData
+    "fashionmnist": FashionMNISTData,
+    "cinic10": CINIC10Data
 }
 
 
