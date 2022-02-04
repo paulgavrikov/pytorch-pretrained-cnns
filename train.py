@@ -13,6 +13,11 @@ import logging
 logging.getLogger('lightning').setLevel(0)
 
 
+def none_or_str(value):  # from https://stackoverflow.com/questions/48295246/how-to-pass-none-keyword-as-command-line-argument
+    if value == 'None':
+        return None
+    return value
+
 def start_training(args):
     seed_everything(args["seed"])
     os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
@@ -96,6 +101,9 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
     parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
+    parser.add_argument("--scheduler", type=none_or_str, default="WarmupCosine", choices=["WarmupCosine", "Step", "None", None])
+    parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])
+    parser.add_argument("--cutmix_prob", type=float, default=0)
     parser.add_argument("--aux_loss", type=int, default=0, choices=[0, 1])
 
 

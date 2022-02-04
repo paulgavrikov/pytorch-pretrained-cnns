@@ -2,8 +2,27 @@ import pytorch_lightning as pl
 import torch
 from torchmetrics import Accuracy
 from scheduler import WarmupCosineLR
+from torch.optim.lr_scheduler import StepLR
 import numpy as np
 import models
+
+def rand_bbox(size, lam):
+    W = size[2]
+    H = size[3]
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = int(W * cut_rat)
+    cut_h = int(H * cut_rat)
+
+    # uniform
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+
+    return bbx1, bby1, bbx2, bby2
 
 
 class TrainModule(pl.LightningModule):
@@ -13,21 +32,38 @@ class TrainModule(pl.LightningModule):
         self.criterion = torch.nn.CrossEntropyLoss()
         self.train_accuracy = Accuracy()
         self.val_accuracy = Accuracy()
+        self.criterion = torch.nn.CrossEntropyLoss()
         self.model = models.get_model(self.myparams["classifier"])(in_channels=hparams["in_channels"],
                                                                   num_classes=hparams["num_classes"])
         self.acc_max = 0
+        self.cutmix_beta = 1
         
     def forward(self, batch, metric=None):
         images, labels = batch
         if self.myparams["aux_loss"] == 0 or not self.model.training:
-            predictions = self.model(images)
-            loss = torch.nn.CrossEntropyLoss()(predictions, labels)
+            r = np.random.rand(1)
+            if self.cutmix_beta > 0 and r < self.myparams["cutmix_prob"]:
+                lam = np.random.beta(self.cutmix_beta, self.cutmix_beta)
+                rand_index = torch.randperm(images.size()[0]).cuda()
+                target_a = labels
+                target_b = labels[rand_index]
+                bbx1, bby1, bbx2, bby2 = rand_bbox(ims.size(), lam)
+                ims[:, :, bbx1:bbx2, bby1:bby2] = ims[rand_index, :, bbx1:bbx2, bby1:bby2]
+                # adjust lambda to exactly match pixel ratio
+                lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
+                # compute output
+                predictions = self.model(images)
+                loss = self.criterion(predictions, target_a) * lam + self.criterion(predictions, target_b) * (1. - lam)
+            else:
+                predictions = self.model(images)
+                loss = self.criterion(predictions, labs)
         else:
             predictions, aux_outputs = self.model(images)
-            loss = torch.nn.CrossEntropyLoss()(predictions, labels) ** 2
+            loss = self.criterion(predictions, labels) ** 2
             for aux_output in aux_outputs:
-                loss += torch.nn.CrossEntropyLoss()(aux_output, labels) ** 2
+                loss += self.criterion(aux_output, labels) ** 2
             loss = torch.sqrt(loss)
+            
         if metric is not None:
             accuracy = metric(predictions, labels)
             return loss, accuracy * 100
@@ -51,7 +87,6 @@ class TrainModule(pl.LightningModule):
         self.log("loss/val", np.mean([d.item() for d in outs]))
         
         acc = self.val_accuracy.compute() * 100
-        print(acc)
         if acc > self.acc_max:
             self.acc_max = acc
         
@@ -65,30 +100,44 @@ class TrainModule(pl.LightningModule):
 
     def configure_optimizers(self):
         
+        if self.myparams["freeze"] == "conv":
+            for module in self.model.modules():
+                if type(module) == torch.nn.Conv2d:
+                    for param in module.parameters():
+                        param.requires_grad = False
+        
         params = filter(lambda p: p.requires_grad, self.model.parameters())
         
+        optimizers, schedulers = [], []
+        
         if self.myparams["optimizer"] == "sgd":
-            optimizer = torch.optim.SGD(
+            optimizers.append(torch.optim.SGD(
                 params,
                 lr=self.myparams["learning_rate"],
                 weight_decay=self.myparams["weight_decay"],
                 momentum=self.myparams["momentum"],
                 nesterov=True
-            )
-
-            total_steps = self.myparams["max_epochs"] * len(self.train_dataloader())
-            scheduler = {
-                "scheduler": WarmupCosineLR(optimizer, warmup_epochs=total_steps * 0.3, max_epochs=total_steps),
-                "interval": "step",
-                "name": "learning_rate",
-            }
-
-            return [optimizer], [scheduler]
+            ))
         else:
-            optimizer = torch.optim.Adam(
+            optimizers.append(torch.optim.Adam(
                 params,
                 lr=self.myparams["learning_rate"],
                 weight_decay=self.myparams["weight_decay"]
-            )
+            ))
 
-            return [optimizer], []
+        if self.myparams["scheduler"] == "WarmupCosine":
+            total_steps = self.myparams["max_epochs"] * len(self.train_dataloader())
+            schedulers.append({
+                "scheduler": WarmupCosineLR(optimizers[0], warmup_epochs=total_steps * 0.3, max_epochs=total_steps),
+                "interval": "step",
+                "name": "learning_rate",
+            })
+        elif self.myparams["scheduler"] == "Step":
+            total_steps = self.myparams["max_epochs"] * len(self.train_dataloader())
+            schedulers.append({
+                "scheduler": StepLR(optimizers[0], step_size=30, gamma=0.1),
+                "interval": "epoch",
+                "name": "learning_rate",
+            })
+
+        return optimizers, schedulers
