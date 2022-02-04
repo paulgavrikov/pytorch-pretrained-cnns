@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--checkpoints", type=str, default="last_best", choices=["all", "last_best", None])
     parser.add_argument("--classifier", type=str, default="lowres_resnet9")
-    parser.add_argument("--dataset", type=str, default="omniglot")
+    parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--load_checkpoint", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
