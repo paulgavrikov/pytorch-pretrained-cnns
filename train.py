@@ -31,8 +31,7 @@ def start_training(args):
 
     logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
         
-    checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1,
-                              period=1)
+    checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1)
 
     trainer = Trainer(
         fast_dev_run=False,
@@ -42,9 +41,9 @@ def start_training(args):
         weights_summary=None,
         log_every_n_steps=1,
         max_epochs=args["max_epochs"],
-        checkpoint_callback=False if args["checkpoints"] is None else checkpoint,
+        checkpoint_callback=args["checkpoints"] is not None,
         precision=args["precision"],
-        callbacks=None,
+        callbacks=None if args["checkpoints"] is None else checkpoint,
         num_sanity_val_steps=0  # sanity check must be turned off or bad performance callback will trigger.
     )
 
@@ -98,6 +97,7 @@ if __name__ == "__main__":
     parser.add_argument("--momentum", type=float, default=0.9)
     parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
     parser.add_argument("--aux_loss", type=int, default=0, choices=[0, 1])
+
 
     parser.add_argument("--seed", type=int, default=0)
 
