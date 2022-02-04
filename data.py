@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder
+import os
 
 
 class CIFAR10Data(pl.LightningDataModule):
@@ -129,7 +130,7 @@ class CINIC10Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=os.path.append(self.root_dir, "train"), transform=transform)
+        dataset = ImageFolder(root=os.path.join(self.root_dir, "train"), transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -147,7 +148,7 @@ class CINIC10Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=os.path.append(self.root_dir, "valid"), transform=transform)
+        dataset = ImageFolder(root=os.path.join(self.root_dir, "valid"), transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
