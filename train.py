@@ -77,7 +77,7 @@ def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
     
-    parser.add_argument("--info", default=False)
+    parser.add_argument("--info", action="store_true")
 
     parser.add_argument("--data_dir", type=str, default="./datasets")
     parser.add_argument("--params", type=str, default=None)  # load params from json
@@ -96,7 +96,6 @@ if __name__ == "__main__":
     parser.add_argument("--cudnn_deterministic", type=bool, default=True)
     parser.add_argument("--gpu_id", type=str, default="0")
     
-
     parser.add_argument("--learning_rate", type=float, default=1e-2)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
@@ -104,8 +103,7 @@ if __name__ == "__main__":
     parser.add_argument("--scheduler", type=none_or_str, default="WarmupCosine", choices=["WarmupCosine", "Step", "None", None])
     parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])
     parser.add_argument("--cutmix_prob", type=float, default=0)
-    parser.add_argument("--aux_loss", type=int, default=0, choices=[0, 1])
-
+    parser.add_argument("--aux_loss", action="store_true")
 
     parser.add_argument("--seed", type=int, default=0)
 
