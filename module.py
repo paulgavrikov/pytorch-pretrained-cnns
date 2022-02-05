@@ -56,7 +56,7 @@ class TrainModule(pl.LightningModule):
                 loss = self.criterion(predictions, target_a) * lam + self.criterion(predictions, target_b) * (1. - lam)
             else:
                 predictions = self.model(images)
-                loss = self.criterion(predictions, labs)
+                loss = self.criterion(predictions, labels)
         else:
             predictions, aux_outputs = self.model(images)
             loss = self.criterion(predictions, labels) ** 2
