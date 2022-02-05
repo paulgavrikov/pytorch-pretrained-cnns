@@ -1,4 +1,4 @@
-from .lowresdensenet import lowres_densenet121, lowres_densenet161, lowres_densenet169
+from .lowresdensenet import lowres_densenet121, lowres_densenet161, lowres_densenet169, lowres_densenet201, lowres_densenet264
 from .lowresgooglenet import lowres_googlenet
 from .lowresinception import lowres_inception_v3
 from .lowresmobilenetv2 import lowres_mobilenet_v2
@@ -42,6 +42,8 @@ all_classifiers = {
     "lowres_densenet121": lowres_densenet121,
     "lowres_densenet161": lowres_densenet161,
     "lowres_densenet169": lowres_densenet169,
+    "lowres_densenet201": lowres_densenet201,
+    "lowres_densenet264": lowres_densenet264,
     "lowres_mobilenet_v2": lowres_mobilenet_v2,
     "lowres_googlenet": lowres_googlenet,
     "lowres_inception_v3": lowres_inception_v3,

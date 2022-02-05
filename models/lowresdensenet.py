@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-__all__ = ["LowResDenseNet", "lowres_densenet121", "lowres_densenet169", "lowres_densenet161"]
+__all__ = ["LowResDenseNet", "lowres_densenet121", "lowres_densenet169", "lowres_densenet161", "lowres_densenet201", "lowres_densenet264"]
 
 
 class _DenseLayer(nn.Sequential):
@@ -199,3 +199,15 @@ def lowres_densenet169(**kwargs):
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
     """
     return _densenet(32, (6, 12, 32, 32), 64, **kwargs)
+
+def lowres_densenet201(**kwargs):
+    r"""Densenet-201 model from
+    `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
+    """
+    return _densenet(32, (6, 12, 48, 32), 64, **kwargs)
+
+def lowres_densenet264(**kwargs):
+    r"""Densenet-264 model from
+    `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
+    """
+    return _densenet(32, (6, 12, 64, 48), 64, **kwargs)
