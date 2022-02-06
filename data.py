@@ -5,7 +5,94 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder
 import os
+from torch.utils.data import Dataset
+import json
+from PIL import Image
+import numpy as np
 
+
+class ImageNet1k(Dataset):
+    def __init__(self, data_root, split, transform=None):
+        self.samples = []
+        self.targets = []
+        self.transform = transform
+        self.syn_to_class = {}
+        
+        with open(os.path.join(data_root, "imagenet_class_index.json"), "rb") as f:
+            json_file = json.load(f)
+            for class_id, v in json_file.items():
+                self.syn_to_class[v[0]] = int(class_id)
+        
+        samples_dir = os.path.join(data_root, split)
+        for syn_id in os.listdir(samples_dir):
+            target = self.syn_to_class[syn_id]
+            syn_folder = os.path.join(samples_dir, syn_id)
+            for sample in os.listdir(syn_folder):
+                sample_path = os.path.join(syn_folder, sample)
+                self.samples.append(sample_path)
+                self.targets.append(target)
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        x = Image.open(self.samples[idx])
+        if self.transform:
+            x = self.transform(x)
+        return x, self.targets[idx]
+
+class ImageNet1kData(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.485, 0.456, 0.406)
+        self.std = (0.229, 0.224, 0.225)
+        self.num_classes = 1000
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageNet1k(root=self.root_dir, split="train", transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageNet1k(root=self.root_dir, split="val", transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
 
 class CIFAR10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
@@ -248,7 +335,8 @@ all_datasets = {
     "mnist": MNISTData,
     "kmnist": KMNISTData,
     "fashionmnist": FashionMNISTData,
-    "cinic10": CINIC10Data
+    "cinic10": CINIC10Data,
+    "imagenet1k": ImageNet1kData
 }
 
 
