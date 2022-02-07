@@ -31,8 +31,11 @@ def start_training(args):
     model = TrainModule(args)
     if args["load_checkpoint"] is not None:
         state = torch.load(args["load_checkpoint"], map_location=model.device)
+        if "state_dict" in state:
+            state = state["state_dict"]
+        
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
-                                         state["state_dict"].items()))
+                                         state.items()))
 
     logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
         
