@@ -28,21 +28,24 @@ def rand_bbox(size, lam):
 class TrainModule(pl.LightningModule):
     def __init__(self, hparams):
         super().__init__()
-        self.myparams = hparams
+        
+        self.myhparams = hparams
+        self.save_hyperparameters()    
+        
         self.criterion = torch.nn.CrossEntropyLoss()
         self.train_accuracy = Accuracy()
         self.val_accuracy = Accuracy()
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.model = models.get_model(self.myparams["classifier"])(in_channels=hparams["in_channels"],
+        self.model = models.get_model(self.myhparams["classifier"])(in_channels=hparams["in_channels"],
                                                                   num_classes=hparams["num_classes"])
         self.acc_max = 0
         self.cutmix_beta = 1
         
     def forward(self, batch, metric=None):
         images, labels = batch
-        if self.myparams["aux_loss"] == 0 or not self.model.training:
+        if self.myhparams["aux_loss"] == 0 or not self.model.training:
             r = np.random.rand(1)
-            if self.cutmix_beta > 0 and r < self.myparams["cutmix_prob"]:
+            if self.cutmix_beta > 0 and r < self.myhparams["cutmix_prob"]:
                 lam = np.random.beta(self.cutmix_beta, self.cutmix_beta)
                 rand_index = torch.randperm(images.size()[0]).cuda()
                 target_a = labels
@@ -100,7 +103,7 @@ class TrainModule(pl.LightningModule):
 
     def configure_optimizers(self):
         
-        if self.myparams["freeze"] == "conv":
+        if self.myhparams["freeze"] == "conv":
             for module in self.model.modules():
                 if type(module) == torch.nn.Conv2d:
                     for param in module.parameters():
@@ -110,30 +113,30 @@ class TrainModule(pl.LightningModule):
         
         optimizers, schedulers = [], []
         
-        if self.myparams["optimizer"] == "sgd":
+        if self.myhparams["optimizer"] == "sgd":
             optimizers.append(torch.optim.SGD(
                 params,
-                lr=self.myparams["learning_rate"],
-                weight_decay=self.myparams["weight_decay"],
-                momentum=self.myparams["momentum"],
+                lr=self.myhparams["learning_rate"],
+                weight_decay=self.myhparams["weight_decay"],
+                momentum=self.myhparams["momentum"],
                 nesterov=True
             ))
         else:
             optimizers.append(torch.optim.Adam(
                 params,
-                lr=self.myparams["learning_rate"],
-                weight_decay=self.myparams["weight_decay"]
+                lr=self.myhparams["learning_rate"],
+                weight_decay=self.myhparams["weight_decay"]
             ))
 
-        if self.myparams["scheduler"] == "WarmupCosine":
-            total_steps = self.myparams["max_epochs"] * len(self.train_dataloader())
+        if self.myhparams["scheduler"] == "WarmupCosine":
+            total_steps = self.myhparams["max_epochs"] * len(self.train_dataloader())
             schedulers.append({
                 "scheduler": WarmupCosineLR(optimizers[0], warmup_epochs=total_steps * 0.3, max_epochs=total_steps),
                 "interval": "step",
                 "name": "learning_rate",
             })
-        elif self.myparams["scheduler"] == "Step":
-            total_steps = self.myparams["max_epochs"] * len(self.train_dataloader())
+        elif self.myhparams["scheduler"] == "Step":
+            total_steps = self.myhparams["max_epochs"] * len(self.train_dataloader())
             schedulers.append({
                 "scheduler": StepLR(optimizers[0], step_size=30, gamma=0.1),
                 "interval": "epoch",
