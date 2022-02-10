@@ -198,8 +198,10 @@ class CIFAR100Data(pl.LightningDataModule):
         return self.val_dataloader()
     
 class CINIC10Data(pl.LightningDataModule):
-    def __init__(self, root_dir, batch_size, num_workers):
+    def __init__(self, root_dir, batch_size, num_workers, part="all"):
         super().__init__()
+        assert part in ["all", "imagenet", "cifar10"]
+        self.part = part
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -217,7 +219,10 @@ class CINIC10Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=os.path.join(self.root_dir, "train"), transform=transform)
+        dataset = ImageFolder(root=os.path.join(self.root_dir, "train"), transform=transform, is_valid_file= \
+                              lambda path: (self.part == "all") or \
+                              (self.part == "imagenet" and not os.path.basename(path).startswith("cifar10-")) or \
+                              (self.part == "cifar10" and os.path.basename(path).startswith("cifar10-")))
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
