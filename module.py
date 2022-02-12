@@ -41,6 +41,11 @@ class TrainModule(pl.LightningModule):
         self.acc_max = 0
         self.cutmix_beta = 1
         
+    def get_progress_bar_dict(self):
+        items = super().get_progress_bar_dict()
+        items["val_acc_max"] = self.acc_max
+        return items
+        
     def forward(self, batch, metric=None):
         images, labels = batch
         if self.myhparams["aux_loss"] == 0 or not self.model.training:
@@ -91,7 +96,7 @@ class TrainModule(pl.LightningModule):
         
         acc = self.val_accuracy.compute() * 100
         if acc > self.acc_max:
-            self.acc_max = acc
+            self.acc_max = acc.item()
         
         self.log("acc_max/val", self.acc_max)
         self.log("acc/val", acc)        
