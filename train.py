@@ -18,6 +18,7 @@ def none_or_str(value):  # from https://stackoverflow.com/questions/48295246/how
         return None
     return value
 
+
 def start_training(args):
     seed_everything(args["seed"])
     os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
@@ -57,6 +58,7 @@ def start_training(args):
 
     trainer.fit(model, data)
 
+
 def dump_info():
     print("Available models:")
     for x in models.all_classifiers.keys():
@@ -71,7 +73,7 @@ def main(args):
     if type(args) is not dict:
         args = vars(args)
 
-    if args["info"] == False:
+    if not args["info"]:
         start_training(args)
     else:
         dump_info()
@@ -89,6 +91,7 @@ if __name__ == "__main__":
     parser.add_argument("--classifier", type=str, default="lowres_resnet9")
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--load_checkpoint", type=str, default=None)
+    parser.add_argument("--robustbench_model_dir", type=str, default=None)
     parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
 

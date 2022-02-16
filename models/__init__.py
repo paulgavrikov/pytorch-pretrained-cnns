@@ -11,6 +11,7 @@ from .lowresvgg import lowres_vgg11_bn, lowres_vgg13_bn, lowres_vgg16_bn, lowres
 from .lowresresnet9 import lowres_resnet9, lowres_auxresnet9
 from .lowresalexnet import lowres_alexnet
 from .lowreslenet import lowres_lenet5
+from robustbench.utils import load_model
 
 all_classifiers = {
     "lowres_vgg11_bn": lowres_vgg11_bn,
@@ -52,5 +53,12 @@ all_classifiers = {
 }
 
 
-def get_model(name):
-    return all_classifiers.get(name)
+def get_model(name, **kwargs):
+    if name.starts_with("robustbench_"):
+        dataset = kwargs["dataset"].replace("imagenet1k", "imagenet")
+        model = load_model(model_name=name.replace("robustbench_", ""), dataset=dataset, threat_model="Linf",
+                           model_dir=kwargs["robustbench_model_dir"])
+        model.reset_parameters()
+    else:
+        model = all_classifiers.get(name)
+    return model

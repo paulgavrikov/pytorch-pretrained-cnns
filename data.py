@@ -41,6 +41,7 @@ class ImageNet1k(Dataset):
             x = self.transform(x)
         return x, self.targets[idx]
 
+
 class ImageNet1kData(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
         super().__init__()
@@ -58,7 +59,6 @@ class ImageNet1kData(pl.LightningDataModule):
                 transforms.RandomResizedCrop(224),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = ImageNet1k(root=self.root_dir, split="train", transform=transform)
@@ -78,7 +78,6 @@ class ImageNet1kData(pl.LightningDataModule):
                 transforms.Resize(256),
                 transforms.CenterCrop(224),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = ImageNet1k(root=self.root_dir, split="val", transform=transform)
@@ -93,6 +92,7 @@ class ImageNet1kData(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+
 
 class CIFAR10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
@@ -111,7 +111,6 @@ class CIFAR10Data(pl.LightningDataModule):
                 transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = CIFAR10(root=self.root_dir, train=True, transform=transform, download=True)
@@ -129,7 +128,6 @@ class CIFAR10Data(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = CIFAR10(root=self.root_dir, train=False, transform=transform, download=True)
@@ -163,7 +161,6 @@ class CIFAR100Data(pl.LightningDataModule):
                 transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = CIFAR100(root=self.root_dir, train=True, transform=transform, download=True)
@@ -181,7 +178,6 @@ class CIFAR100Data(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = CIFAR100(root=self.root_dir, train=False, transform=transform, download=True)
@@ -196,7 +192,8 @@ class CIFAR100Data(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
-    
+
+
 class CINIC10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers, part="all"):
         super().__init__()
@@ -216,7 +213,6 @@ class CINIC10Data(pl.LightningDataModule):
                 transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = ImageFolder(root=os.path.join(self.root_dir, "train"), transform=transform, is_valid_file= \
@@ -237,7 +233,6 @@ class CINIC10Data(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = ImageFolder(root=os.path.join(self.root_dir, "valid"), transform=transform)
@@ -267,8 +262,6 @@ class TensorData(pl.LightningDataModule):
             [
                 transforms.Resize((32, 32)),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
-
             ]
         )
         dataset = self.data_class(root=self.root_dir, train=True, transform=transform, download=True)
@@ -287,7 +280,6 @@ class TensorData(pl.LightningDataModule):
             [
                 transforms.Resize((32, 32)),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
             ]
         )
         dataset = self.data_class(root=self.root_dir, train=False, transform=transform, download=True)

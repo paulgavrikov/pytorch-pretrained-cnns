@@ -6,6 +6,7 @@ from torch.optim.lr_scheduler import StepLR
 import numpy as np
 import models
 
+
 def rand_bbox(size, lam):
     W = size[2]
     H = size[3]
@@ -36,8 +37,10 @@ class TrainModule(pl.LightningModule):
         self.train_accuracy = Accuracy()
         self.val_accuracy = Accuracy()
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.model = models.get_model(self.myhparams["classifier"])(in_channels=hparams["in_channels"],
-                                                                  num_classes=hparams["num_classes"])
+        self.model = models.get_model(hparams["classifier"])(in_channels=hparams["in_channels"],
+                                                             num_classes=hparams["num_classes"],
+                                                             dataset=hparams["dataset"],
+                                                             robustbench_model_dir=hparams["robustbench_model_dir"])
         self.acc_max = 0
         self.cutmix_beta = 1
         
@@ -141,7 +144,6 @@ class TrainModule(pl.LightningModule):
                 "name": "learning_rate",
             })
         elif self.myhparams["scheduler"] == "Step":
-            total_steps = self.myhparams["max_epochs"] * len(self.train_dataloader())
             schedulers.append({
                 "scheduler": StepLR(optimizers[0], step_size=30, gamma=0.1),
                 "interval": "epoch",
