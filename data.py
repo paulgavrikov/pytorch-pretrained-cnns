@@ -161,6 +161,7 @@ class TinyImageNetData(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.ToPILImage(),
                 transforms.RandomCrop(64, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -181,6 +182,7 @@ class TinyImageNetData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.ToPILImage(),
                 transforms.RandomCrop(64, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -201,6 +203,7 @@ class TinyImageNetData(pl.LightningDataModule):
     def test_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.ToPILImage(),
                 transforms.RandomCrop(64, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
