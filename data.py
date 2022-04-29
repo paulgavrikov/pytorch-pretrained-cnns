@@ -3,7 +3,7 @@ from abc import ABC
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN
 import os
 from torch.utils.data import Dataset
 import json
@@ -133,6 +133,59 @@ class CIFAR10Data(pl.LightningDataModule):
             ]
         )
         dataset = CIFAR10(root=self.root_dir, train=False, transform=transform, download=True)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
+
+class SVHNData(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 10
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = SVHN(root=self.root_dir, split="train", transform=transform, download=True)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = SVHN(root=self.root_dir, split="test", transform=transform, download=True)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -341,7 +394,8 @@ all_datasets = {
     "kmnist": KMNISTData,
     "fashionmnist": FashionMNISTData,
     "cinic10": CINIC10Data,
-    "imagenet1k": ImageNet1kData
+    "imagenet1k": ImageNet1kData,
+    "svhn": SVHNData
 }
 
 
