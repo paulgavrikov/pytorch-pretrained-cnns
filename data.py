@@ -8,6 +8,7 @@ import os
 from torch.utils.data import Dataset
 import json
 from PIL import Image
+import hub
 import numpy as np
 
 
@@ -144,6 +145,78 @@ class CIFAR10Data(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+
+
+class TinyImageNetData(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 200
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomCrop(64, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        ds = hub.load("hub://activeloop/tiny-imagenet-train")
+        dataloader = ds.pytorch(
+            transform={'images': transform, 'labels': None},
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomCrop(64, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        ds = hub.load("hub://activeloop/tiny-imagenet-validation")
+        dataloader = ds.pytorch(
+            transform={'images': transform, 'labels': None},
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomCrop(64, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        ds = hub.load("hub://activeloop/tiny-imagenet-test")
+        dataloader = ds.pytorch(
+            transform={'images': transform, 'labels': None},
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
 
 
 
@@ -395,7 +468,8 @@ all_datasets = {
     "fashionmnist": FashionMNISTData,
     "cinic10": CINIC10Data,
     "imagenet1k": ImageNet1kData,
-    "svhn": SVHNData
+    "svhn": SVHNData,
+    "tinyimagenet": TinyImageNetData
 }
 
 
