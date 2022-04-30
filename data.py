@@ -98,13 +98,12 @@ class ImageNet1kData(pl.LightningDataModule):
 
 
 class GroceryStore(Dataset):
-    def __init__(self, root, split="train", transform=None):
-        self.root_dir = root
+    def __init__(self, root_dir, split="train", transform=None):
+        assert split in ['train', 'val', 'test']
+        self.root_dir = root_dir
         self.samples_frame = []
         self.transform = transform
 
-        if split not in ['train', 'val', 'test']:
-            raise ValueError(f"slit value has to be one of {['train', 'val', 'test']}")
         dataset_path = None
 
         if split == "train":
@@ -114,7 +113,7 @@ class GroceryStore(Dataset):
         if split == "test":
             dataset_path = "test.txt"
 
-        with open(os.path.join(root, dataset_path), "rb") as f:
+        with open(os.path.join(root_dir, dataset_path), "rb") as f:
             self.samples_frame = pd.read_csv(f)
 
     def __len__(self):
@@ -149,7 +148,7 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root=self.root_dir, split="train", transform=transform)
+        dataset = GroceryStore(root_dir=self.root_dir, split="train", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -169,11 +168,224 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root=self.root_dir, split="val", transform=transform)
+        dataset = GroceryStore(root_dir=self.root_dir, split="val", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
+class HistAerial25x25Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.valid_size = 0.15
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 7
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(25),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        valid_idx = indices[:split]
+        valid_sampler = SubsetRandomSampler(valid_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=valid_sampler,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
+class HistAerial50x50Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.valid_size = 0.15
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 7
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(50),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        valid_idx = indices[:split]
+        valid_sampler = SubsetRandomSampler(valid_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=valid_sampler,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
+class HistAerial100x100Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.valid_size = 0.15
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 42
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(100),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        valid_idx = indices[:split]
+        valid_sampler = SubsetRandomSampler(valid_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=valid_sampler,
             drop_last=True,
             pin_memory=True,
         )
@@ -270,7 +482,7 @@ class SUN397Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=train_sampler,
-            shuffle=True,
+            shuffle=False,
             drop_last=True,
             pin_memory=True,
         )
@@ -638,7 +850,10 @@ all_datasets = {
     "svhn": SVHNData,
     "tinyimagenet": TinyImageNetData,
     "grocerystore": GroceryStoreData,
-    "sun397": SUN397Data
+    "sun397": SUN397Data,
+    "25x25_overlap_0percent": HistAerial25x25Data,
+    "50x50_overlap_0percent": HistAerial50x50Data,
+    "100x100_overlap_0percent": HistAerial100x100Data
 }
 
 
