@@ -2,13 +2,14 @@ import json
 import os
 
 import hub
+import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 from PIL import Image
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.data import Dataset
 from torchvision import transforms
-from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN
+from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN, SUN397
 
 
 class ImageNet1k(Dataset):
@@ -225,6 +226,79 @@ class CIFAR10Data(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
+class SUN397Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.485, 0.456, 0.406)
+        self.std = (0.229, 0.224, 0.225)
+        self.num_classes = 899
+        self.in_channels = 3
+        self.valid_size = 0.15
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = SUN397(root=self.root_dir, transform=transform, download=True)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=train_sampler,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = SUN397(root=self.root_dir, transform=transform, download=True)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        valid_idx = indices[:split]
+        valid_sampler = SubsetRandomSampler(valid_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=valid_sampler,
             drop_last=True,
             pin_memory=True,
         )
@@ -562,7 +636,9 @@ all_datasets = {
     "cinic10": CINIC10Data,
     "imagenet1k": ImageNet1kData,
     "svhn": SVHNData,
-    "tinyimagenet": TinyImageNetData
+    "tinyimagenet": TinyImageNetData,
+    "grocerystore": GroceryStoreData,
+    "sun397": SUN397Data
 }
 
 
