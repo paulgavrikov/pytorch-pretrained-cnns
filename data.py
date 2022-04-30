@@ -1,15 +1,14 @@
-from abc import ABC
+import json
+import os
 
+import hub
+import pandas as pd
 import pytorch_lightning as pl
+from PIL import Image
 from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN
-import os
-from torch.utils.data import Dataset
-import json
-from PIL import Image
-import hub
-import numpy as np
 
 
 class ImageNet1k(Dataset):
@@ -18,12 +17,12 @@ class ImageNet1k(Dataset):
         self.targets = []
         self.transform = transform
         self.syn_to_class = {}
-        
+
         with open(os.path.join(data_root, "imagenet_class_index.json"), "rb") as f:
             json_file = json.load(f)
             for class_id, v in json_file.items():
                 self.syn_to_class[v[0]] = int(class_id)
-        
+
         samples_dir = os.path.join(data_root, split)
         for syn_id in os.listdir(samples_dir):
             target = self.syn_to_class[syn_id]
@@ -41,6 +40,7 @@ class ImageNet1k(Dataset):
         if self.transform:
             x = self.transform(x)
         return x, self.targets[idx]
+
 
 class ImageNet1kData(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
@@ -94,6 +94,93 @@ class ImageNet1kData(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+
+
+class GroceryStore(Dataset):
+    def __init__(self, root, split="train", transform=None):
+        self.root_dir = root
+        self.samples_frame = []
+        self.transform = transform
+
+        if split not in ['train', 'val', 'test']:
+            raise ValueError(f"slit value has to be one of {['train', 'val', 'test']}")
+        dataset_path = None
+
+        if split == "train":
+            dataset_path = "train.txt"
+        if split == "val":
+            dataset_path = "val.txt"
+        if split == "test":
+            dataset_path = "test.txt"
+
+        with open(os.path.join(root, dataset_path), "rb") as f:
+            self.samples_frame = pd.read_csv(f)
+
+    def __len__(self):
+        return len(self.samples_frame)
+
+    def __getitem__(self, idx):
+        img_name = os.path.join(self.root_dir,
+                                self.samples_frame.iloc[idx, 0])
+        x = Image.open(img_name)
+        if self.transform:
+            x = self.transform(x)
+        return x, self.samples_frame.iloc[idx, 2]
+
+
+class GroceryStoreData(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 42
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = GroceryStore(root=self.root_dir, split="train", transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = GroceryStore(root=self.root_dir, split="val", transform=transform)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
 
 class CIFAR10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
@@ -162,11 +249,11 @@ class TinyImageNetData(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.ToPILImage(),
-                transforms.Grayscale(num_output_channels=3),
                 transforms.RandomResizedCrop(64),
                 transforms.RandomHorizontalFlip(),
+                transforms.Grayscale(num_output_channels=3),
                 transforms.ToTensor(),
-                transforms.Normalize(self.mean, self.std),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
         ds = hub.load("hub://activeloop/tiny-imagenet-train")
@@ -223,7 +310,6 @@ class TinyImageNetData(pl.LightningDataModule):
             pin_memory=True,
         )
         return dataloader
-
 
 
 class SVHNData(pl.LightningDataModule):
@@ -328,7 +414,8 @@ class CIFAR100Data(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
-    
+
+
 class CINIC10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers, part="all"):
         super().__init__()
@@ -352,9 +439,9 @@ class CINIC10Data(pl.LightningDataModule):
             ]
         )
         dataset = ImageFolder(root=os.path.join(self.root_dir, "train"), transform=transform, is_valid_file= \
-                              lambda path: (self.part == "all") or \
-                              (self.part == "imagenet" and not os.path.basename(path).startswith("cifar10-")) or \
-                              (self.part == "cifar10" and os.path.basename(path).startswith("cifar10-")))
+            lambda path: (self.part == "all") or \
+                         (self.part == "imagenet" and not os.path.basename(path).startswith("cifar10-")) or \
+                         (self.part == "cifar10" and os.path.basename(path).startswith("cifar10-")))
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
