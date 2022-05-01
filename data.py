@@ -136,7 +136,7 @@ class GroceryStoreData(pl.LightningDataModule):
         self.num_workers = num_workers
         self.mean = (0.5, 0.5, 0.5)
         self.std = (0.5, 0.5, 0.5)
-        self.num_classes = 43 # needs to be one more than the 42 classes because its start with a 0. Dont ask why
+        self.num_classes = 43  # needs to be one more than the 42 classes because its start with a 0. Dont ask why
         self.in_channels = 3
 
     def train_dataloader(self):
@@ -462,7 +462,6 @@ class SUN397Data(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.RandomResizedCrop(32),
-                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -490,7 +489,8 @@ class SUN397Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(38),
+                transforms.RandomCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
