@@ -461,7 +461,7 @@ class SUN397Data(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(224),
+                transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
@@ -490,8 +490,7 @@ class SUN397Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(256),
-                transforms.CenterCrop(224),
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
