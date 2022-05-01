@@ -11,6 +11,8 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN, SUN397
 
+from tin import TinyImageNet
+
 
 class ImageNet1k(Dataset):
     def __init__(self, data_root, split, transform=None):
@@ -518,6 +520,11 @@ class SUN397Data(pl.LightningDataModule):
         return self.val_dataloader()
 
 
+
+
+
+
+
 class TinyImageNetData(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
         super().__init__()
@@ -532,17 +539,15 @@ class TinyImageNetData(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.ToPILImage(),
-                transforms.RandomResizedCrop(64),
-                transforms.RandomHorizontalFlip(),
-                transforms.Grayscale(num_output_channels=3),
+                transforms.RandomCrop(32),
+                transforms.RandomHorizontalFlip,
                 transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                transforms.Normalize(self.mean, self.std),
             ]
         )
-        ds = hub.load("hub://activeloop/tiny-imagenet-train")
-        dataloader = ds.pytorch(
-            transform={'images': transform, 'labels': None},
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="train", transform=transform, download=False)
+        dataloader = DataLoader(
+            dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
@@ -554,20 +559,16 @@ class TinyImageNetData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.ToPILImage(),
-                transforms.Grayscale(num_output_channels=3),
-                transforms.RandomResizedCrop(64),
-                transforms.RandomHorizontalFlip(),
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        ds = hub.load("hub://activeloop/tiny-imagenet-validation")
-        dataloader = ds.pytorch(
-            transform={'images': transform, 'labels': None},
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="val", transform=transform, download=False)
+        dataloader = DataLoader(
+            dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            shuffle=True,
             drop_last=True,
             pin_memory=True,
         )
@@ -576,20 +577,16 @@ class TinyImageNetData(pl.LightningDataModule):
     def test_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.ToPILImage(),
-                transforms.Grayscale(num_output_channels=3),
-                transforms.RandomResizedCrop(64),
-                transforms.RandomHorizontalFlip(),
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        ds = hub.load("hub://activeloop/tiny-imagenet-test")
-        dataloader = ds.pytorch(
-            transform={'images': transform, 'labels': None},
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="test", transform=transform, download=False)
+        dataloader = DataLoader(
+            dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            shuffle=True,
             drop_last=True,
             pin_memory=True,
         )

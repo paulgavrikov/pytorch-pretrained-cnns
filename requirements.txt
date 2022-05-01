@@ -6,3 +6,5 @@ hub~=2.4.0
 numpy~=1.22.3
 pandas~=1.4.2
 Pillow~=9.1.0
+imageio~=2.18.0
+tqdm~=4.64.0

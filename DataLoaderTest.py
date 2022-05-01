@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from data import GroceryStore, HistAerial25x25Data, HistAerial50x50Data, HistAerial100x100Data
+from data import GroceryStore, HistAerial25x25Data, HistAerial50x50Data, HistAerial100x100Data, TinyImageNetData
 
 
 class MyTestCase(unittest.TestCase):
@@ -49,6 +49,15 @@ class MyTestCase(unittest.TestCase):
 
         for data in dataloader:
             print(data)
+
+    def test_tinyimagenet_dataloader(self):
+        hist_data = TinyImageNetData(root_dir=os.path.join("C:/DataSets/", "tinyimagenet"),
+                                        batch_size=256, num_workers=8)
+        train_loader = hist_data.train_dataloader()
+        val_loader = hist_data.val_dataloader()
+
+        for item in train_loader:
+            print(item)
 
     def test_hist_dataloader(self):
         transform = transforms.Compose(
