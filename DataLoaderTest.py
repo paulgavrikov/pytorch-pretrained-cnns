@@ -47,8 +47,8 @@ class MyTestCase(unittest.TestCase):
             pin_memory=True,
         )
 
-        # for data in dataloader:
-        #     print(data)
+        for data in dataloader:
+            print(data)
 
     def test_hist_dataloader(self):
         transform = transforms.Compose(
