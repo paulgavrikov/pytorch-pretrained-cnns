@@ -113,14 +113,14 @@ class GroceryStore(Dataset):
         if split == "test":
             dataset_path = "test.txt"
 
-        with open(os.path.join(root_dir, dataset_path), "rb") as f:
+        with open(os.path.join(root_dir, "dataset", dataset_path), "rb") as f:
             self.samples_frame = pd.read_csv(f)
 
     def __len__(self):
         return len(self.samples_frame)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir,
+        img_name = os.path.join(self.root_dir, "dataset",
                                 self.samples_frame.iloc[idx, 0])
         x = Image.open(img_name)
         if self.transform:

@@ -20,7 +20,7 @@ class MyTestCase(unittest.TestCase):
             ]
         )
 
-        test_o = GroceryStore("G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset/dataset",
+        test_o = GroceryStore("G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset",
                               split="train", transform=transform)
         object_get = test_o.__getitem__(2)
         print(object_get)
@@ -36,7 +36,7 @@ class MyTestCase(unittest.TestCase):
             ]
         )
 
-        dataset = GroceryStore(root_dir="G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset/dataset",
+        dataset = GroceryStore(root_dir="G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset",
                                split="train", transform=transform)
         dataloader = DataLoader(
             dataset,
