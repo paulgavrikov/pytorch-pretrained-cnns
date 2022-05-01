@@ -1,7 +1,7 @@
 import json
 import os
+from collections import defaultdict
 
-import hub
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
@@ -10,8 +10,6 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN, SUN397
-
-from tin import TinyImageNet
 
 
 class ImageNet1k(Dataset):
@@ -520,9 +518,109 @@ class SUN397Data(pl.LightningDataModule):
         return self.val_dataloader()
 
 
+class TinyImageNetPaths:
+    def __init__(self, root_dir):
+
+        train_path = os.path.join(root_dir, 'train')
+        val_path = os.path.join(root_dir, 'val')
+        test_path = os.path.join(root_dir, 'test')
+
+        wnids_path = os.path.join(root_dir, 'wnids.txt')
+        words_path = os.path.join(root_dir, 'words.txt')
+
+        self._make_paths(train_path, val_path, test_path,
+                         wnids_path, words_path)
+
+    def _make_paths(self, train_path, val_path, test_path,
+                    wnids_path, words_path):
+        self.ids = []
+        with open(wnids_path, 'r') as idf:
+            for nid in idf:
+                nid = nid.strip()
+                self.ids.append(nid)
+        self.nid_to_words = defaultdict(list)
+        with open(words_path, 'r') as wf:
+            for line in wf:
+                nid, labels = line.split('\t')
+                labels = list(map(lambda x: x.strip(), labels.split(',')))
+                self.nid_to_words[nid].extend(labels)
+
+        self.paths = {
+            'train': [],  # [img_path, id, nid, box]
+            'val': [],  # [img_path, id, nid, box]
+            'test': []  # img_path
+        }
+
+        # Get the test paths
+        self.paths['test'] = list(map(lambda x: os.path.join(test_path, x),
+                                      os.listdir(test_path)))
+        # Get the validation paths and labels
+        with open(os.path.join(val_path, 'val_annotations.txt')) as valf:
+            for line in valf:
+                fname, nid, x0, y0, x1, y1 = line.split()
+                fname = os.path.join(val_path, 'images', fname)
+                bbox = int(x0), int(y0), int(x1), int(y1)
+                label_id = self.ids.index(nid)
+                self.paths['val'].append((fname, label_id, nid, bbox))
+
+        # Get the training paths
+        train_nids = os.listdir(train_path)
+        for nid in train_nids:
+            anno_path = os.path.join(train_path, nid, nid + '_boxes.txt')
+            imgs_path = os.path.join(train_path, nid, 'images')
+            label_id = self.ids.index(nid)
+            with open(anno_path, 'r') as annof:
+                for line in annof:
+                    fname, x0, y0, x1, y1 = line.split()
+                    fname = os.path.join(imgs_path, fname)
+                    bbox = int(x0), int(y0), int(x1), int(y1)
+                    self.paths['train'].append((fname, label_id, nid, bbox))
 
 
+"""Datastructure for the tiny image dataset.
 
+Args:
+  root_dir: Root directory for the data
+  mode: One of "train", "test", or "val"
+  preload: Preload into memory
+  load_transform: Transformation to use at the preload time
+  transform: Transformation to use at the retrieval time
+  download: Download the dataset
+
+Members:
+  tinp: Instance of the TinyImageNetPaths
+  img_data: Image data
+  label_data: Label data
+"""
+
+
+class TinyImageNet(Dataset):
+    def __init__(self, root_dir, mode='train', transform=None):
+        tinp = TinyImageNetPaths(root_dir)
+        self.mode = mode
+        self.label_idx = 1  # from [image, id, nid, box]
+        self.transform = transform
+        self.transform_results = dict()
+
+        self.IMAGE_SHAPE = (64, 64, 3)
+
+        self.img_data = []
+        self.label_data = []
+
+        self.samples = tinp.paths[mode]
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        s = self.samples[idx]
+        img = Image.open(s[0])
+        img = img.convert("RGB")
+        label = s[1]
+
+        if self.transform:
+            img = self.transform(img)
+        return img, label
 
 
 class TinyImageNetData(pl.LightningDataModule):
@@ -540,12 +638,11 @@ class TinyImageNetData(pl.LightningDataModule):
         transform = transforms.Compose(
             [
                 transforms.RandomCrop(32),
-                transforms.RandomHorizontalFlip,
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="train", transform=transform, download=False)
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="train", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -564,7 +661,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="val", transform=transform, download=False)
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="val", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -582,7 +679,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="test", transform=transform, download=False)
+        dataset = TinyImageNet(root_dir=self.root_dir, mode="test", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
