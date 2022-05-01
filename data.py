@@ -196,7 +196,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(25),
+                transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
@@ -225,6 +225,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -267,7 +268,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(50),
+                transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
@@ -296,6 +297,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -338,7 +340,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(100),
+                transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
@@ -367,6 +369,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
