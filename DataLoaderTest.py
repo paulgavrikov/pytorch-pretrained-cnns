@@ -6,7 +6,8 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from data import GroceryStore, HistAerial25x25Data, HistAerial50x50Data, HistAerial100x100Data, TinyImageNetData, TinyImageNet
+from data import GroceryStore, HistAerial25x25Data, HistAerial50x50Data, HistAerial100x100Data, TinyImageNetData, \
+    TinyImageNet, FractalDB60Data
 
 
 class MyTestCase(unittest.TestCase):
@@ -110,8 +111,49 @@ class MyTestCase(unittest.TestCase):
             pin_memory=True,
         )
 
-        # for data in dataloader:
-        #     print(data)
+        for data in dataloader:
+            print(data)
+
+    def test_fractaldb_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(32),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+        dataset = ImageFolder(root=os.path.join("C:/DataSets", "fractaldb60"),
+                              transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(0.15 * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=256,
+            num_workers=8,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+
+        for data in dataloader:
+            print(data)
+
+    def test_fractaldb_dataloader_class(self):
+        hist_data = FractalDB60Data(root_dir=os.path.join("C:/DataSets", "fractaldb60"),
+                                        batch_size=256, num_workers=8)
+        train_loader = hist_data.train_dataloader()
+        val_loader = hist_data.val_dataloader()
+
+        for item in train_loader:
+            print(item)
 
     def test_hist_dataloader_25x25_class(self):
         hist_data = HistAerial25x25Data(root_dir=os.path.join("C:/DataSets/test", "25x25_overlap_0percent"),

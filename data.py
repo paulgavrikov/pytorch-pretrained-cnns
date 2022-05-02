@@ -397,6 +397,78 @@ class HistAerial100x100Data(pl.LightningDataModule):
         return self.val_dataloader()
 
 
+class FractalDB60Data(pl.LightningDataModule):
+    def __init__(self, root_dir, batch_size, num_workers):
+        super().__init__()
+        self.valid_size = 0.15
+        self.root_dir = root_dir
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.mean = (0.5, 0.5, 0.5)
+        self.std = (0.5, 0.5, 0.5)
+        self.num_classes = 60
+        self.in_channels = 3
+
+    def train_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(32),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def val_dataloader(self):
+        transform = transforms.Compose(
+            [
+                transforms.Resize(32),
+                transforms.ToTensor(),
+                transforms.Normalize(self.mean, self.std),
+            ]
+        )
+        dataset = ImageFolder(root=self.root_dir, transform=transform)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(self.valid_size * num_train))
+
+        valid_idx = indices[:split]
+        valid_sampler = SubsetRandomSampler(valid_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            sampler=valid_sampler,
+            drop_last=True,
+            pin_memory=True,
+        )
+        return dataloader
+
+    def test_dataloader(self):
+        return self.val_dataloader()
+
+
 class CIFAR10Data(pl.LightningDataModule):
     def __init__(self, root_dir, batch_size, num_workers):
         super().__init__()
@@ -578,23 +650,6 @@ class TinyImageNetPaths:
                     fname = os.path.join(imgs_path, fname)
                     bbox = int(x0), int(y0), int(x1), int(y1)
                     self.paths['train'].append((fname, label_id, nid, bbox))
-
-
-"""Datastructure for the tiny image dataset.
-
-Args:
-  root_dir: Root directory for the data
-  mode: One of "train", "test", or "val"
-  preload: Preload into memory
-  load_transform: Transformation to use at the preload time
-  transform: Transformation to use at the retrieval time
-  download: Download the dataset
-
-Members:
-  tinp: Instance of the TinyImageNetPaths
-  img_data: Image data
-  label_data: Label data
-"""
 
 
 class TinyImageNet(Dataset):
@@ -948,7 +1003,8 @@ all_datasets = {
     "sun397": SUN397Data,
     "25x25_overlap_0percent": HistAerial25x25Data,
     "50x50_overlap_0percent": HistAerial50x50Data,
-    "100x100_overlap_0percent": HistAerial100x100Data
+    "100x100_overlap_0percent": HistAerial100x100Data,
+    "fractaldb60": FractalDB60Data
 }
 
 
