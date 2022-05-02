@@ -2,6 +2,7 @@ import json
 import os
 from collections import defaultdict
 
+import git
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
@@ -10,6 +11,9 @@ from torch.utils.data import DataLoader, SubsetRandomSampler
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100, MNIST, KMNIST, FashionMNIST, ImageFolder, SVHN, SUN397
+from torchvision.datasets.utils import download_and_extract_archive
+
+from utils import CloneProgress
 
 
 class ImageNet1k(Dataset):
@@ -98,11 +102,18 @@ class ImageNet1kData(pl.LightningDataModule):
 
 
 class GroceryStore(Dataset):
-    def __init__(self, root_dir, split="train", transform=None):
+    _GIT_URL = "https://github.com/marcusklasson/GroceryStoreDataset.git"
+
+    def __init__(self, root, split="train", transform=None, download=False):
         assert split in ['train', 'val', 'test']
-        self.root_dir = root_dir
+        self.root = root
         self.samples_frame = []
         self.transform = transform
+
+        if download:
+            self._download()
+        if not self._check_exists():
+            raise RuntimeError("Dataset not found. You can use download=True to download it")
 
         dataset_path = None
 
@@ -113,19 +124,27 @@ class GroceryStore(Dataset):
         if split == "test":
             dataset_path = "test.txt"
 
-        with open(os.path.join(root_dir, "dataset", dataset_path), "rb") as f:
+        with open(os.path.join(root, "dataset", dataset_path), "rb") as f:
             self.samples_frame = pd.read_csv(f)
 
     def __len__(self):
         return len(self.samples_frame)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, "dataset",
+        img_name = os.path.join(self.root, "dataset",
                                 self.samples_frame.iloc[idx, 0])
         x = Image.open(img_name)
         if self.transform:
             x = self.transform(x)
         return x, self.samples_frame.iloc[idx, 2]
+
+    def _check_exists(self) -> bool:
+        return os.path.exists(self.root)
+
+    def _download(self) -> None:
+        if self._check_exists():
+            return
+        git.Repo.clone_from(self._GIT_URL, self.root, progress=CloneProgress())
 
 
 class GroceryStoreData(pl.LightningDataModule):
@@ -148,7 +167,7 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root_dir=self.root_dir, split="train", transform=transform)
+        dataset = GroceryStore(root=self.root_dir, split="train", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -167,7 +186,7 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root_dir=self.root_dir, split="val", transform=transform)
+        dataset = GroceryStore(root=self.root_dir, split="val", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -179,6 +198,31 @@ class GroceryStoreData(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+
+
+class HistAerial(ImageFolder):
+    _DATASET_URL = "http://eidolon.univ-lyon2.fr/~remi1/HistAerialDataset/dataset/HistAerialDataset.zip"
+    _DATASET_MD5 = "cff202e58d8905cf108ae0cc9cee9feb"
+
+    def __init__(self, root, dataset_type="25x25", transform=None, download=False):
+        assert dataset_type in ["25x25", "50x50", "100x100"]
+        self.root = root
+
+        if download:
+            self._download()
+        if not self._check_exists():
+            raise RuntimeError("Dataset not found. You can use download=True to download it")
+
+        root = os.path.join(root, f"{dataset_type}_overlap_0percent")
+        super().__init__(root, transform)
+
+    def _check_exists(self) -> bool:
+        return os.path.exists(self.root)
+
+    def _download(self) -> None:
+        if self._check_exists():
+            return
+        download_and_extract_archive(self._DATASET_URL, download_root=self.root, md5=self._DATASET_MD5)
 
 
 class HistAerial25x25Data(pl.LightningDataModule):
@@ -202,7 +246,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="25x25", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -230,7 +274,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="25x25", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -274,7 +318,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="50x50", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -302,7 +346,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="50x50", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -346,7 +390,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="100x100", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -374,7 +418,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = HistAerial(root=self.root_dir, dataset_type="100x100", transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -395,6 +439,30 @@ class HistAerial100x100Data(pl.LightningDataModule):
 
     def test_dataloader(self):
         return self.val_dataloader()
+
+
+class FractalDB60(ImageFolder):
+    _DATASET_URL = f"https://onedrive.live.com/download?cid=A5E3C415BF70F5D8&resid=A5E3C415BF70F5D8%217797&authkey=AM3nK9dCz1LC2jk"  # own onedrive link
+    _DATASET_MD5 = "843ba9a92bdd9dbfa972ad363f8ea8b6"
+
+    def __init__(self, root, transform=None, download=False):
+        self.root = root
+
+        if download:
+            self._download()
+        if not self._check_exists():
+            raise RuntimeError("Dataset not found. You can use download=True to download it")
+
+        super().__init__(os.path.join(root,"fractaldb_cat60_ins1000"), transform)
+
+    def _check_exists(self) -> bool:
+        return os.path.exists(self.root)
+
+    def _download(self) -> None:
+        if self._check_exists():
+            return
+        download_and_extract_archive(self._DATASET_URL, filename="fractaldb.tar.gz", download_root=self.root,
+                                     md5=self._DATASET_MD5)
 
 
 class FractalDB60Data(pl.LightningDataModule):
@@ -418,7 +486,7 @@ class FractalDB60Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = FractalDB60(root=self.root_dir, transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -446,7 +514,7 @@ class FractalDB60Data(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = ImageFolder(root=self.root_dir, transform=transform)
+        dataset = FractalDB60(root=self.root_dir, transform=transform, download=True)
 
         num_train = len(dataset)
         indices = list(range(num_train))
@@ -653,8 +721,10 @@ class TinyImageNetPaths:
 
 
 class TinyImageNet(Dataset):
-    def __init__(self, root_dir, mode='train', transform=None):
-        tinp = TinyImageNetPaths(root_dir)
+    _DATASET_URL = "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
+    _DATASET_MD5 = "90528d7ca1a48142e341f4ef8d21d0de"
+
+    def __init__(self, root, mode='train', transform=None, download=False):
         self.mode = mode
         self.label_idx = 1  # from [image, id, nid, box]
         self.transform = transform
@@ -665,6 +735,14 @@ class TinyImageNet(Dataset):
         self.img_data = []
         self.label_data = []
 
+        self.root = root
+
+        if download:
+            self._download()
+        if not self._check_exists():
+            raise RuntimeError("Dataset not found. You can use download=True to download it")
+
+        tinp = TinyImageNetPaths(os.path.join(root, "tiny-imagenet-200"))
         self.samples = tinp.paths[mode]
 
     def __len__(self):
@@ -679,6 +757,14 @@ class TinyImageNet(Dataset):
         if self.transform:
             img = self.transform(img)
         return img, label
+
+    def _check_exists(self) -> bool:
+        return os.path.exists(self.root)
+
+    def _download(self) -> None:
+        if self._check_exists():
+            return
+        download_and_extract_archive(self._DATASET_URL, download_root=self.root, md5=self._DATASET_MD5)
 
 
 class TinyImageNetData(pl.LightningDataModule):
@@ -700,7 +786,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="train", transform=transform)
+        dataset = TinyImageNet(root=self.root_dir, mode="train", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -719,7 +805,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="val", transform=transform)
+        dataset = TinyImageNet(root=self.root_dir, mode="val", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -737,7 +823,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root_dir=self.root_dir, mode="test", transform=transform)
+        dataset = TinyImageNet(root=self.root_dir, mode="test", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,

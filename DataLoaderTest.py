@@ -7,7 +7,7 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
 from data import GroceryStore, HistAerial25x25Data, HistAerial50x50Data, HistAerial100x100Data, TinyImageNetData, \
-    TinyImageNet, FractalDB60Data
+    TinyImageNet, FractalDB60Data, HistAerial, FractalDB60
 
 
 class MyTestCase(unittest.TestCase):
@@ -37,7 +37,7 @@ class MyTestCase(unittest.TestCase):
             ]
         )
 
-        dataset = GroceryStore(root_dir="G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset",
+        dataset = GroceryStore(root="G:/Users/David/Source/Repos/MasterThesisRepos/GroceryStoreDataset",
                                split="train", transform=transform)
         dataloader = DataLoader(
             dataset,
@@ -51,9 +51,21 @@ class MyTestCase(unittest.TestCase):
         for data in dataloader:
             print(data)
 
+    def test_grocerystore_download(self):
+        dataset = GroceryStore(root=os.path.join("C:/DataSets/", "grocerystore"), split="train", download=True)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=256,
+            num_workers=8,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
+
     def test_tinyimagenet_dataloader_class(self):
         hist_data = TinyImageNetData(root_dir=os.path.join("C:/DataSets/", "tinyimagenet"),
-                                        batch_size=256, num_workers=8)
+                                     batch_size=256, num_workers=8)
         train_loader = hist_data.train_dataloader()
         val_loader = hist_data.val_dataloader()
 
@@ -70,7 +82,7 @@ class MyTestCase(unittest.TestCase):
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
-        dataset = TinyImageNet(root_dir=os.path.join("C:/DataSets/", "tinyimagenet"), mode="train", transform=transform)
+        dataset = TinyImageNet(root=os.path.join("C:/DataSets/", "tinyimagenet"), mode="train", transform=transform)
         dataloader = DataLoader(
             dataset,
             batch_size=256,
@@ -82,6 +94,18 @@ class MyTestCase(unittest.TestCase):
 
         # for data in dataloader:
         #     print(data)
+
+    def test_tinyimagenet_download(self):
+
+        dataset = TinyImageNet(root=os.path.join("C:/DataSets/test", "tinyimagenet"), mode="train", download=True)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=256,
+            num_workers=8,
+            shuffle=True,
+            drop_last=True,
+            pin_memory=True,
+        )
 
     def test_hist_dataloader(self):
         transform = transforms.Compose(
@@ -114,6 +138,40 @@ class MyTestCase(unittest.TestCase):
         for data in dataloader:
             print(data)
 
+    def test_hist_download(self):
+        transform = transforms.Compose(
+            [
+                transforms.Resize(32),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+        dataset = HistAerial(root=os.path.join("C:/DataSets/test", "histaerial"), dataset_type="25x25",
+                             transform=transform, download=True)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(0.15 * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=256,
+            num_workers=8,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+        i = 0
+        for data in dataloader:
+            print(data)
+            if i > 10:
+                break
+            i = i + 1
+
     def test_fractaldb_dataloader(self):
         transform = transforms.Compose(
             [
@@ -143,12 +201,43 @@ class MyTestCase(unittest.TestCase):
             pin_memory=True,
         )
 
+        # for data in dataloader:
+        #     pass
+
+    def test_fractal_db_download(self):
+        transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(32),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+        dataset = FractalDB60(root=os.path.join("C:/DataSets/test", "fractaldb60"), transform=transform, download=True)
+
+        num_train = len(dataset)
+        indices = list(range(num_train))
+        split = int(np.floor(0.15 * num_train))
+
+        train_idx = indices[split:]
+        train_sampler = SubsetRandomSampler(train_idx)
+
+        dataloader = DataLoader(
+            dataset,
+            batch_size=256,
+            num_workers=8,
+            sampler=train_sampler,
+            shuffle=False,
+            drop_last=True,
+            pin_memory=True,
+        )
+
         for data in dataloader:
             print(data)
 
     def test_fractaldb_dataloader_class(self):
         hist_data = FractalDB60Data(root_dir=os.path.join("C:/DataSets", "fractaldb60"),
-                                        batch_size=256, num_workers=8)
+                                    batch_size=256, num_workers=8)
         train_loader = hist_data.train_dataloader()
         val_loader = hist_data.val_dataloader()
 
