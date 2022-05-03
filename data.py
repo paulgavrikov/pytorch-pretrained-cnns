@@ -153,14 +153,15 @@ class GroceryStoreData(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.5525, 0.4104, 0.2445)
+        self.std = (0.2205, 0.1999, 0.1837)
         self.num_classes = 43  # needs to be one more than the 42 classes because its start with a 0. Dont ask why
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(48),
                 transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -181,7 +182,8 @@ class GroceryStoreData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(48),
+                transforms.CenterCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -232,8 +234,8 @@ class HistAerial25x25Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.5525, 0.4104, 0.2445)
+        self.std = (0.2205, 0.1999, 0.1837)
         self.num_classes = 7
         self.in_channels = 3
 
@@ -304,14 +306,15 @@ class HistAerial50x50Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.4625, 0.4625, 0.4625)
+        self.std = (0.2764, 0.2764, 0.2764)
         self.num_classes = 7
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(48),
                 transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -341,7 +344,8 @@ class HistAerial50x50Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(48),
+                transforms.CenterCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -376,14 +380,15 @@ class HistAerial100x100Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.4616, 0.4616, 0.4616)
+        self.std = (0.2759, 0.2759, 0.2759)
         self.num_classes = 42
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(48),
                 transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -413,7 +418,8 @@ class HistAerial100x100Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(48),
+                transforms.CenterCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -453,7 +459,7 @@ class FractalDB60(ImageFolder):
         if not self._check_exists():
             raise RuntimeError("Dataset not found. You can use download=True to download it")
 
-        super().__init__(os.path.join(root,"fractaldb_cat60_ins1000"), transform)
+        super().__init__(os.path.join(root, "fractaldb_cat60_ins1000"), transform)
 
     def _check_exists(self) -> bool:
         return os.path.exists(self.root)
@@ -472,14 +478,15 @@ class FractalDB60Data(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.0622, 0.0622, 0.0622)
+        self.std = (0.1646, 0.1646, 0.1646)
         self.num_classes = 60
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
+                transforms.Resize(48),
                 transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
@@ -509,7 +516,8 @@ class FractalDB60Data(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(48),
+                transforms.CenterCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -773,15 +781,16 @@ class TinyImageNetData(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.4802, 0.4481, 0.3975)
+        self.std = (0.2764, 0.2689, 0.2816)
         self.num_classes = 200
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomCrop(32),
+                transforms.Resize(48),
+                transforms.RandomResizedCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -800,7 +809,8 @@ class TinyImageNetData(pl.LightningDataModule):
     def val_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.Resize(32),
+                transforms.Resize(48),
+                transforms.CenterCrop(32),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -840,15 +850,15 @@ class SVHNData(pl.LightningDataModule):
         self.root_dir = root_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.mean = (0.5, 0.5, 0.5)
-        self.std = (0.5, 0.5, 0.5)
+        self.mean = (0.4377, 0.4438, 0.4728)
+        self.std = (0.1980, 0.2010, 0.1970)
         self.num_classes = 10
         self.in_channels = 3
 
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomCrop(32, padding=4),
+                transforms.RandomResizedCrop(32),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
@@ -1087,9 +1097,9 @@ all_datasets = {
     "tinyimagenet": TinyImageNetData,
     "grocerystore": GroceryStoreData,
     "sun397": SUN397Data,
-    "25x25_overlap_0percent": HistAerial25x25Data,
-    "50x50_overlap_0percent": HistAerial50x50Data,
-    "100x100_overlap_0percent": HistAerial100x100Data,
+    "histaerial25x25": HistAerial25x25Data,
+    "histaerial50x50": HistAerial50x50Data,
+    "histaerial100x100": HistAerial100x100Data,
     "fractaldb60": FractalDB60Data
 }
 
