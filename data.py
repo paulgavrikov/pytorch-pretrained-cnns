@@ -168,7 +168,7 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root=self.root_dir, split="train", transform=transform)
+        dataset = GroceryStore(root=self.root_dir, split="train", transform=transform,download=True)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -188,7 +188,7 @@ class GroceryStoreData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = GroceryStore(root=self.root_dir, split="val", transform=transform)
+        dataset = GroceryStore(root=self.root_dir, split="val", transform=transform,download=True)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -795,7 +795,7 @@ class TinyImageNetData(pl.LightningDataModule):
                 transforms.Normalize(self.mean, self.std),
             ]
         )
-        dataset = TinyImageNet(root=self.root_dir, mode="train", transform=transform)
+        dataset = TinyImageNet(root=self.root_dir, mode="train", transform=transform,download=True)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
