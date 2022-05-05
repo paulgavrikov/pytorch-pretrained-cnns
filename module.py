@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import torch
 from torchmetrics import Accuracy
 from scheduler import WarmupCosineLR
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, MultiStepLR
 import numpy as np
 import models
 
@@ -141,9 +141,14 @@ class TrainModule(pl.LightningModule):
                 "name": "learning_rate",
             })
         elif self.myhparams["scheduler"] == "Step":
-            total_steps = self.myhparams["max_epochs"] * len(self.train_dataloader())
             schedulers.append({
                 "scheduler": StepLR(optimizers[0], step_size=30, gamma=0.1),
+                "interval": "epoch",
+                "name": "learning_rate",
+            })
+        elif self.myhparams["scheduler"] == "FrankleStep":
+            schedulers.append({
+                "scheduler": MultiStepLR(optimizers[0], milestones=[80, 120], gamma=0.1),
                 "interval": "epoch",
                 "name": "learning_rate",
             })
