@@ -46,7 +46,7 @@ def start_training(args):
         logger=logger,
         gpus=-1,
         deterministic=not args["cudnn_non_deterministic"],
-        weights_summary=None,
+        enable_model_summary=False,
         log_every_n_steps=1,
         max_epochs=args["max_epochs"],
         checkpoint_callback=args["checkpoints"] is not None,
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
     parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
-    parser.add_argument("--scheduler", type=none_or_str, default="WarmupCosine", choices=["WarmupCosine", "Step", "FrankleStep", "None", None])
+    parser.add_argument("--scheduler", type=none_or_str, default=None, choices=["WarmupCosine", "Step", "FrankleStep", "None", None])
     parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])
     parser.add_argument("--cutmix_prob", type=float, default=0)
     parser.add_argument("--aux_loss", action="store_true")

@@ -6,7 +6,7 @@ class MyCheckpoint(ModelCheckpoint):
     def __init__(self, **kwargs):
         super(MyCheckpoint, self).__init__(**kwargs)
 
-    def on_pretrain_routine_start(self, trainer, pl_module):
+    def on_fit_start(self, trainer, pl_module):
         super(MyCheckpoint, self).on_pretrain_routine_start(trainer, pl_module)
         if self.save_top_k == -1:
             monitor_candidates = self._monitor_candidates(trainer)
