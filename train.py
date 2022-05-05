@@ -39,8 +39,15 @@ def start_training(args):
 
     logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
         
-    checkpoint = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1)
+    callbacks = []
+      
+    if args["checkpoints"]:
+        checkpoint_cb = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1)
+        callbacks.append(checkpoint_cb)
 
+    progress_bar_cb = MyProgressBar()
+    callbacks.append(progress_bar_cb)
+    
     trainer = Trainer(
         fast_dev_run=False,
         logger=logger,
@@ -50,9 +57,9 @@ def start_training(args):
         enable_model_summary=False,
         log_every_n_steps=1,
         max_epochs=args["max_epochs"],
-        checkpoint_callback=args["checkpoints"] is not None,
+        enable_checkpointing=args["checkpoints"] is not None,
         precision=args["precision"],
-        callbacks=None if args["checkpoints"] is None else checkpoint,
+        callbacks=callbacks,
         num_sanity_val_steps=0  # sanity check must be turned off or bad performance callback will trigger.
     )
 

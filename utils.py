@@ -1,5 +1,5 @@
 from pytorch_lightning.callbacks import ModelCheckpoint
-
+from pytorch_lightning.callbacks import RichProgressBar
 
 class MyCheckpoint(ModelCheckpoint):
 
@@ -15,3 +15,18 @@ class MyCheckpoint(ModelCheckpoint):
             )
             self._save_checkpoint(trainer, last_filepath)
 
+            
+class MyProgressBar(RichProgressBar):
+
+    def __init__(self):
+        super().__init__()  # don't forget this :)
+        self.enable = True
+
+    def disable(self):
+        self.enable = False
+        
+    def get_metrics(self, trainer, pl_module):
+        # don't show the version number
+        items = super().get_metrics(trainer, pl_module)
+        items["val_acc_max"] = pl_module.acc_max
+        return items
