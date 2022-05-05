@@ -1,3 +1,4 @@
+import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import RichProgressBar
 
@@ -30,3 +31,17 @@ class MyProgressBar(RichProgressBar):
         items = super().get_metrics(trainer, pl_module)
         items["val_acc_max"] = pl_module.acc_max
         return items
+    
+    
+class NormalizedModel(torch.nn.Module):
+    
+    def __init__(self, model, mean, std):
+        super(NormalizedModel, self).__init__()
+        self.model = model
+        self.mean = torch.nn.Parameter(torch.Tensor(mean).view(-1, 1, 1), requires_grad=False)
+        self.std = torch.nn.Parameter(torch.Tensor(std).view(-1, 1, 1), requires_grad=False)
+        
+    def forward(self, x):
+        out = (x - self.mean) / self.std 
+        out = self.model(out)
+        return out
