@@ -1,4 +1,4 @@
 torch
 torchvision
-pytorch-lightning==1.4.4
+pytorch-lightning==1.6.1
 torchmetrics==0.7.0
