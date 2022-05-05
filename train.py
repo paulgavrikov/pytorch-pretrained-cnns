@@ -46,6 +46,7 @@ def start_training(args):
         logger=logger,
         gpus=-1,
         deterministic=not args["cudnn_non_deterministic"],
+        benchmark=True,
         enable_model_summary=False,
         log_every_n_steps=1,
         max_epochs=args["max_epochs"],
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--max_epochs", type=int, default=100)
-    parser.add_argument("--num_workers", type=int, default=os.cpu_count())
+    parser.add_argument("--num_workers", type=int, default=min(8, os.cpu_count()))
     parser.add_argument("--cudnn_non_deterministic", action="store_false", default=True)
     parser.add_argument("--gpu_id", type=str, default="0")
     
