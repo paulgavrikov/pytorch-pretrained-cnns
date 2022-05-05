@@ -11,6 +11,7 @@ class MyCheckpoint(ModelCheckpoint):
         if self.save_top_k == -1:
             monitor_candidates = self._monitor_candidates(trainer)
             last_filepath = self._get_metric_interpolated_filepath_name(
-                monitor_candidates, trainer.current_epoch, trainer.global_step, trainer
+                monitor_candidates, trainer
             )
-            self._save_model(last_filepath, trainer, pl_module)
+            self._save_checkpoint(trainer, last_filepath)
+
