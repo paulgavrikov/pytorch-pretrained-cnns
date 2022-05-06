@@ -4,7 +4,7 @@ import json
 import argparse
 import torch
 from pytorch_lightning import Trainer, seed_everything
-from pytorch_lightning.loggers import CSVLogger
+from pytorch_lightning.loggers import CSVLogger, WandbLogger
 from module import TrainModule
 import data as datasets
 import models
@@ -35,7 +35,12 @@ def start_training(args):
         if args["reset_head"]:
             model.model.fc.reset_parameters()
 
-    logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
+    loggers = []
+    loggers.append(CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"]))
+        
+    if args["wandb"]:
+        wandb_logger = WandbLogger(project=args["wandb"])
+        loggers.append(wandb_logger)
         
     callbacks = []
       
@@ -48,7 +53,7 @@ def start_training(args):
     
     trainer = Trainer(
         fast_dev_run=False,
-        logger=logger,
+        logger=loggers,
         gpus=-1,
         deterministic=not args["cudnn_non_deterministic"],
         benchmark=True,
@@ -126,6 +131,7 @@ if __name__ == "__main__":
     
     parser.add_argument("--verbose", type=str2bool, default=False)
     parser.add_argument("--profiler", type=str, default=None)
+    parser.add_argument("--wandb", type=str, default=None)
 
     _args = parser.parse_args()
     
