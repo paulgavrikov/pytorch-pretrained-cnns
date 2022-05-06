@@ -5,6 +5,7 @@ import argparse
 import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import CSVLogger, WandbLogger
+from pytorch_lightning.callbacks import RichProgressBar
 from module import TrainModule
 import data as datasets
 import models
@@ -50,7 +51,7 @@ def start_training(args):
         checkpoint_cb = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1)
         callbacks.append(checkpoint_cb)
 
-    progress_bar_cb = MyProgressBar()
+    progress_bar_cb = RichProgressBar()
     callbacks.append(progress_bar_cb)
     
     trainer = Trainer(
