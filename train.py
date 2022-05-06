@@ -11,7 +11,6 @@ import models
 from utils import *
 import logging
 from pprint import pprint
-logging.getLogger('lightning').setLevel(0)
 
 
 def start_training(args):
