@@ -36,10 +36,12 @@ def start_training(args):
             model.model.fc.reset_parameters()
 
     loggers = []
-    loggers.append(CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"]))
+    csv_logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
+    csv_logger.save()
+    loggers.append(csv_logger)
         
     if args["wandb"]:
-        wandb_logger = WandbLogger(project=args["wandb"])
+        wandb_logger = WandbLogger(project=args["wandb"], save_dir=csv_logger.log_dir, log_model=False, version=str(csv_logger.version))
         loggers.append(wandb_logger)
         
     callbacks = []
