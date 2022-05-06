@@ -5,6 +5,8 @@ from scheduler import WarmupCosineLR
 from torch.optim.lr_scheduler import StepLR, MultiStepLR
 import numpy as np
 import models
+from pprint import pprint
+
 
 def rand_bbox(size, lam):
     W = size[2]
@@ -110,6 +112,12 @@ class TrainModule(pl.LightningModule):
                         param.requires_grad = False
         
         params = filter(lambda p: p.requires_grad, self.model.parameters())
+        
+        if self.myhparams["verbose"]:
+            print()
+            print("TRAINABLE PARAMETERS:")
+            pprint([f"{name} {p.shape}" for name, p in filter(lambda p: p[1].requires_grad, self.model.named_parameters())])
+            print(f"TOTAL: {sum(list(map(lambda p: p.numel(), filter(lambda p: p.requires_grad, self.model.parameters()))))}")
         
         optimizers, schedulers = [], []
         

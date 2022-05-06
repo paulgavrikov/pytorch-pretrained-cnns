@@ -10,13 +10,9 @@ import data as datasets
 import models
 from utils import *
 import logging
+from pprint import pprint
 logging.getLogger('lightning').setLevel(0)
 
-
-def none_or_str(value):  # from https://stackoverflow.com/questions/48295246/how-to-pass-none-keyword-as-command-line-argument
-    if value == 'None':
-        return None
-    return value
 
 def start_training(args):
     seed_everything(args["seed"])
@@ -36,6 +32,9 @@ def start_training(args):
         
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state.items()))
+        
+        if args["reset_head"]:
+            model.model.fc.reset_parameters()
 
     logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
         
@@ -62,7 +61,13 @@ def start_training(args):
         callbacks=callbacks,
         num_sanity_val_steps=0  # sanity check must be turned off or bad performance callback will trigger.
     )
-
+    if args["verbose"]:
+        print()
+        print("ARGS:")
+        pprint(args)
+        print()
+        print("MODEL:")
+        pprint(model.model)
     trainer.fit(model, data)
 
 def dump_info():
@@ -97,6 +102,7 @@ if __name__ == "__main__":
     parser.add_argument("--classifier", type=str, default="lowres_resnet9")
     parser.add_argument("--dataset", type=str, default="cifar10")
     parser.add_argument("--load_checkpoint", type=str, default=None)
+    parser.add_argument("--reset_head", type=str2bool, default=False)
     parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
 
@@ -117,6 +123,8 @@ if __name__ == "__main__":
     parser.add_argument("--aux_loss", action="store_true")
 
     parser.add_argument("--seed", type=int, default=0)
+    
+    parser.add_argument("--verbose", type=str2bool, default=False)
 
     _args = parser.parse_args()
     
