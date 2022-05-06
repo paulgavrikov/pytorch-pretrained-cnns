@@ -59,6 +59,7 @@ def start_training(args):
         enable_checkpointing=args["checkpoints"] is not None,
         precision=args["precision"],
         callbacks=callbacks,
+        profiler=args["profiler"],
         num_sanity_val_steps=0  # sanity check must be turned off or bad performance callback will trigger.
     )
     if args["verbose"]:
@@ -125,6 +126,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0)
     
     parser.add_argument("--verbose", type=str2bool, default=False)
+    parser.add_argument("--profiler", type=str, default=None)
 
     _args = parser.parse_args()
     
