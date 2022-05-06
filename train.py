@@ -61,7 +61,7 @@ def start_training(args):
         deterministic=not args["cudnn_non_deterministic"],
         benchmark=True,
         enable_model_summary=False,
-        log_every_n_steps=1,
+        log_every_n_steps=10,
         max_epochs=args["max_epochs"],
         enable_checkpointing=args["checkpoints"] is not None,
         precision=args["precision"],
