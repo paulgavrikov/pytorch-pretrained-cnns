@@ -1,10 +1,13 @@
 import pytorch_lightning as pl
 import torch
-from torchmetrics import Accuracy
+import torchmetrics
 from scheduler import WarmupCosineLR
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, MultiStepLR
 import numpy as np
 import models
+from pprint import pprint
+import torch.nn.functional as F
+
 
 def rand_bbox(size, lam):
     W = size[2]
@@ -31,28 +34,18 @@ class TrainModule(pl.LightningModule):
         
         self.myhparams = hparams
         self.save_hyperparameters()    
-        
-        self.criterion = torch.nn.CrossEntropyLoss()
-        self.train_accuracy = Accuracy()
-        self.val_accuracy = Accuracy()
-        self.criterion = torch.nn.CrossEntropyLoss()
         self.model = models.get_model(self.myhparams["classifier"])(in_channels=hparams["in_channels"],
                                                                   num_classes=hparams["num_classes"])
         self.acc_max = 0
         self.cutmix_beta = 1
         
-    def get_progress_bar_dict(self):
-        items = super().get_progress_bar_dict()
-        items["val_acc_max"] = self.acc_max
-        return items
-        
-    def forward(self, batch, metric=None):
+    def forward(self, batch):
         images, labels = batch
         if self.myhparams["aux_loss"] == 0 or not self.model.training:
             r = np.random.rand(1)
             if self.cutmix_beta > 0 and r < self.myhparams["cutmix_prob"]:
                 lam = np.random.beta(self.cutmix_beta, self.cutmix_beta)
-                rand_index = torch.randperm(images.size()[0]).cuda()
+                rand_index = torch.randperm(images.size()[0]).to(images.device)
                 target_a = labels
                 target_b = labels[rand_index]
                 bbx1, bby1, bbx2, bby2 = rand_bbox(ims.size(), lam)
@@ -61,46 +54,47 @@ class TrainModule(pl.LightningModule):
                 lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
                 # compute output
                 predictions = self.model(images)
-                loss = self.criterion(predictions, target_a) * lam + self.criterion(predictions, target_b) * (1. - lam)
+                loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (1. - lam)
             else:
                 predictions = self.model(images)
-                loss = self.criterion(predictions, labels)
+                loss = F.cross_entropy(predictions, labels)
         else:
             predictions, aux_outputs = self.model(images)
-            loss = self.criterion(predictions, labels) ** 2
+            loss = F.cross_entropy(predictions, labels) ** 2
             for aux_output in aux_outputs:
-                loss += self.criterion(aux_output, labels) ** 2
+                loss += F.cross_entropy(aux_output, labels) ** 2
             loss = torch.sqrt(loss)
             
-        if metric is not None:
-            accuracy = metric(predictions, labels)
-            return loss, accuracy * 100
-        else:
-            return loss
+        accuracy = torchmetrics.functional.accuracy(predictions, labels)
+        return {"loss": loss, "accuracy": accuracy * 100}
 
     def training_step(self, batch, batch_nb):
-        loss, accuracy = self.forward(batch, self.train_accuracy)
-        return loss
+        return self.forward(batch)
 
-    def training_epoch_end(self, outs):            
-        self.log("loss/train", np.mean([d["loss"].item() for d in outs]))
-        self.log("acc/train", self.train_accuracy.compute() * 100)
-        self.train_accuracy.reset()
+    def training_epoch_end(self, outs):  
+        loss = torch.stack([x["loss"] for x in outs]).mean().item()
+        accuracy = torch.stack([x["accuracy"] for x in outs]).mean().item()
+        
+        self.log("loss/train", loss)
+        self.log("acc/train", accuracy, prog_bar=True)
     
     def validation_step(self, batch, batch_nb):
-        loss, accuracy = self.forward(batch, self.val_accuracy)
-        return loss
+        return self.forward(batch)
+    
+    def training_step_end(self, outs):
+        self.log("acc/train", outs["accuracy"], prog_bar=True)
+        self.log("loss/train", outs["loss"])       
 
     def validation_epoch_end(self, outs):
-        self.log("loss/val", np.mean([d.item() for d in outs]))
+        loss = torch.stack([x["loss"] for x in outs]).mean().item()
+        accuracy = torch.stack([x["accuracy"] for x in outs]).mean().item()
         
-        acc = self.val_accuracy.compute() * 100
-        if acc > self.acc_max:
-            self.acc_max = acc.item()
+        self.log("loss/val", loss)
+        if accuracy > self.acc_max:
+            self.acc_max = accuracy
         
-        self.log("acc_max/val", self.acc_max)
-        self.log("acc/val", acc)        
-        self.val_accuracy.reset()
+        self.log("acc_max/val", self.acc_max, prog_bar=True)
+        self.log("acc/val", accuracy, prog_bar=True)        
 
     def test_step(self, batch, batch_nb):
         loss, accuracy = self.forward(batch)
@@ -115,6 +109,12 @@ class TrainModule(pl.LightningModule):
                         param.requires_grad = False
         
         params = filter(lambda p: p.requires_grad, self.model.parameters())
+        
+        if self.myhparams["verbose"]:
+            print()
+            print("TRAINABLE PARAMETERS:")
+            pprint([f"{name} {p.shape}" for name, p in filter(lambda p: p[1].requires_grad, self.model.named_parameters())])
+            print(f"TOTAL: {sum(list(map(lambda p: p.numel(), filter(lambda p: p.requires_grad, self.model.parameters()))))}")
         
         optimizers, schedulers = [], []
         
@@ -141,9 +141,14 @@ class TrainModule(pl.LightningModule):
                 "name": "learning_rate",
             })
         elif self.myhparams["scheduler"] == "Step":
-            total_steps = self.myhparams["max_epochs"] * len(self.train_dataloader())
             schedulers.append({
                 "scheduler": StepLR(optimizers[0], step_size=30, gamma=0.1),
+                "interval": "epoch",
+                "name": "learning_rate",
+            })
+        elif self.myhparams["scheduler"] == "FrankleStep":
+            schedulers.append({
+                "scheduler": MultiStepLR(optimizers[0], milestones=[80, 120], gamma=0.1),
                 "interval": "epoch",
                 "name": "learning_rate",
             })

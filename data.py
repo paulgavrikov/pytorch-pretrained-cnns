@@ -73,7 +73,7 @@ class ImageNet1kData(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -92,7 +92,7 @@ class ImageNet1kData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -571,7 +571,7 @@ class CIFAR10Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -588,7 +588,7 @@ class CIFAR10Data(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -922,7 +922,7 @@ class CIFAR100Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -939,7 +939,7 @@ class CIFAR100Data(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -979,7 +979,7 @@ class CINIC10Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -996,7 +996,7 @@ class CINIC10Data(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -1028,7 +1028,7 @@ class TensorData(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -1046,7 +1046,7 @@ class TensorData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
