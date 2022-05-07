@@ -1,5 +1,7 @@
+from git import RemoteProgress
 import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
+from tqdm import tqdm
 
 
 class MyCheckpoint(ModelCheckpoint):
@@ -15,6 +17,12 @@ class MyCheckpoint(ModelCheckpoint):
                 monitor_candidates, trainer
             )
             self._save_checkpoint(trainer, last_filepath)
+
+
+class CloneProgress(RemoteProgress):
+    def update(self, op_code, cur_count, max_count=None, message=''):
+        pbar = tqdm(total=max_count)
+        pbar.update(cur_count)
 
     
 class NormalizedModel(torch.nn.Module):
