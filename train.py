@@ -87,28 +87,36 @@ def dump_info():
     for x in datasets.all_datasets.keys():
         print(f"\t{x}")
     
+def prepare_data(args):
+    data_dir = os.path.join(args["data_dir"], args["dataset"])
+    data = datasets.get_dataset(args["dataset"])(data_dir, 1, 0)
+    next(iter(data.train_dataloader()))
+    next(iter(data.val_dataloader()))
+    print("Dataset is ready.")
     
 def main(args):
     if type(args) is not dict:
         args = vars(args)
 
-    if args["info"] == False:
+    if args["mode"] == "train":
         start_training(args)
-    else:
+    elif args["mode"] == "initdata":
+        prepare_data(args)
+    elif args["mode"] == "info":
         dump_info()
 
         
 if __name__ == "__main__":
     parser = ArgumentParser()
     
-    parser.add_argument("--info", action="store_true")
+    parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata"])
 
     parser.add_argument("--data_dir", type=str, default="./datasets")
     parser.add_argument("--params", type=str, default=None)  # load params from json
 
     parser.add_argument("--checkpoints", type=str, default="last_best", choices=["all", "last_best", None])
-    parser.add_argument("--classifier", type=str, default="lowres_resnet9")
-    parser.add_argument("--dataset", type=str, default="cifar10")
+    parser.add_argument("--classifier", type=str)
+    parser.add_argument("--dataset", type=str)
     parser.add_argument("--load_checkpoint", type=str, default=None)
     parser.add_argument("--reset_head", type=str2bool, default=False)
     parser.add_argument("--output_dir", type=str, default="./output")
