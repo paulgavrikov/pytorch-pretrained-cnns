@@ -174,7 +174,7 @@ class GroceryStoreData(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -193,7 +193,7 @@ class GroceryStoreData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -263,7 +263,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
             num_workers=self.num_workers,
             sampler=train_sampler,
             shuffle=False,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -290,7 +290,7 @@ class HistAerial25x25Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=valid_sampler,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -336,7 +336,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
             num_workers=self.num_workers,
             sampler=train_sampler,
             shuffle=False,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -364,7 +364,7 @@ class HistAerial50x50Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=valid_sampler,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -410,7 +410,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
             num_workers=self.num_workers,
             sampler=train_sampler,
             shuffle=False,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -438,7 +438,7 @@ class HistAerial100x100Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=valid_sampler,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -508,7 +508,7 @@ class FractalDB60Data(pl.LightningDataModule):
             num_workers=self.num_workers,
             sampler=train_sampler,
             shuffle=False,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -536,7 +536,7 @@ class FractalDB60Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=valid_sampler,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -632,7 +632,7 @@ class SUN397Data(pl.LightningDataModule):
             num_workers=self.num_workers,
             sampler=train_sampler,
             shuffle=False,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -660,7 +660,7 @@ class SUN397Data(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             sampler=valid_sampler,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -801,7 +801,7 @@ class TinyImageNetData(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -820,7 +820,7 @@ class TinyImageNetData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -838,7 +838,7 @@ class TinyImageNetData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -858,8 +858,6 @@ class SVHNData(pl.LightningDataModule):
     def train_dataloader(self):
         transform = transforms.Compose(
             [
-                transforms.RandomResizedCrop(32),
-                transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 transforms.Normalize(self.mean, self.std),
             ]
@@ -870,7 +868,7 @@ class SVHNData(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             shuffle=True,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
@@ -887,7 +885,7 @@ class SVHNData(pl.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            drop_last=True,
+            drop_last=False,
             pin_memory=True,
         )
         return dataloader
