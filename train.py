@@ -5,13 +5,15 @@ import argparse
 import torch
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import CSVLogger, WandbLogger
-from pytorch_lightning.callbacks import RichProgressBar
+from pytorch_lightning.callbacks import RichProgressBar, ModelCheckpoint
 from module import TrainModule
 import data as datasets
 import models
 from utils import *
 import logging
 from pprint import pprint
+import wandb
+from functools import partial
 
 
 def start_training(args):
@@ -42,13 +44,15 @@ def start_training(args):
     loggers.append(csv_logger)
         
     if args["wandb"]:
-        wandb_logger = WandbLogger(project=args["wandb"], save_dir=csv_logger.log_dir, log_model=False, version=str(csv_logger.version))
+        wandb_logger = WandbLogger(project=args["wandb"], log_model=False)
+        wandb.run.name = f"{args['classifier']}-{args['dataset']}-{wandb.run.id}"
+        wandb.run.save()
         loggers.append(wandb_logger)
         
     callbacks = []
       
     if args["checkpoints"]:
-        checkpoint_cb = MyCheckpoint(monitor="acc/val", mode="max", save_top_k=-1 if args["checkpoints"] == "all" else 1)
+        checkpoint_cb = ExtendedModelCheckpoint(save_first=True, monitor="acc/val", mode="max", save_top_k=1, save_last=args["checkpoints"] == "last_best")
         callbacks.append(checkpoint_cb)
 
     progress_bar_cb = RichProgressBar()
@@ -93,7 +97,17 @@ def prepare_data(args):
     next(iter(data.train_dataloader()))
     next(iter(data.val_dataloader()))
     print("Dataset is ready.")
-    
+
+def wandb_sweep(args):
+    wandb.init()
+    config = wandb.config
+    for k, v in vars(config).items():
+        if k.startswith("hparams/"):
+            config_key = k.replace("hparams/", "")
+            args[config_key] = v
+            print(f"Setting {config_key}={v}")
+            start_training(args)
+            
 def main(args):
     if type(args) is not dict:
         args = vars(args)
@@ -104,17 +118,20 @@ def main(args):
         prepare_data(args)
     elif args["mode"] == "info":
         dump_info()
+    elif args["mode"] == "wandbsweep":
+        wandb.agent(args["wandb_sweepid"], function=partial(wandb_sweep, args=args))
 
         
 if __name__ == "__main__":
     parser = ArgumentParser()
     
-    parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata"])
+    parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata", "wandbsweep"])
 
     parser.add_argument("--data_dir", type=str, default="./datasets")
     parser.add_argument("--params", type=str, default=None)  # load params from json
 
     parser.add_argument("--checkpoints", type=str, default="last_best", choices=["all", "last_best", None])
+    
     parser.add_argument("--classifier", type=str)
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--load_checkpoint", type=str, default=None)
@@ -143,6 +160,10 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", type=str2bool, default=False)
     parser.add_argument("--profiler", type=str, default=None)
     parser.add_argument("--wandb", type=str, default=None)
+    parser.add_argument("--wandb_sweepid", type=str, default=None)
+    
+    parser.add_argument("--extra1", type=str, default=None)
+    parser.add_argument("--extra2", type=str, default=None)
 
     _args = parser.parse_args()
     
