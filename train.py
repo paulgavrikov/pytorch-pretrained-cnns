@@ -1,4 +1,5 @@
 import os
+import sys
 from argparse import ArgumentParser
 import json
 import argparse
@@ -27,14 +28,24 @@ def start_training(args):
     model = TrainModule(args)
     if args["load_checkpoint"] is not None:
         state = torch.load(args["load_checkpoint"], map_location=model.device)
+        if args["replace_fc"]:
+            out_features=state['hyper_parameters']['hparams']['num_classes']
         if "state_dict" in state:
             state = state["state_dict"]
+            
+        # print(model.model)
+        
+        if args["reset_head"]:
+            model.model.fc.reset_parameters()
+            
+        
+        if args["replace_fc"]:
+            model.model.fc = torch.nn.Linear(model.model.fc.in_features, out_features,bias=False)
+        
         
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state.items()))
         
-        if args["reset_head"]:
-            model.model.fc.reset_parameters()
 
     loggers = []
     csv_logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
@@ -107,6 +118,7 @@ def main(args):
 
         
 if __name__ == "__main__":
+
     parser = ArgumentParser()
     
     parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata"])
@@ -119,6 +131,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--load_checkpoint", type=str, default=None)
     parser.add_argument("--reset_head", type=str2bool, default=False)
+    parser.add_argument("--replace_fc", type=str2bool, default=False)
     parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
 
@@ -146,11 +159,15 @@ if __name__ == "__main__":
 
     _args = parser.parse_args()
     
+    # logging.error(_args.params)
+    
     if _args.params is not None:
         json_args = argparse.Namespace()
         with open(_args.params, "r") as f:
             json_args.__dict__ = json.load(f)
 
         _args = parser.parse_args(namespace=json_args)
+        
+    # logging.error(_args)
     
     main(_args)
