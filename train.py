@@ -27,24 +27,25 @@ def start_training(args):
 
     model = TrainModule(args)
     if args["load_checkpoint"] is not None:
-        state = torch.load(args["load_checkpoint"], map_location=model.device)
-        if args["replace_fc"]:
-            out_features=state['hyper_parameters']['hparams']['num_classes']
+        state = torch.load(args["load_checkpoint"], map_location=model.device)        
+        
+        if args["replace_fc"]: 
+            num_classes=state['hyper_parameters']['hparams']['num_classes']
+            in_channels=state['hyper_parameters']['hparams']['in_channels']
+            
+            args["num_classes"] = num_classes
+            args["in_channels"] = in_channels
+            
+            model = TrainModule(args)
+        
         if "state_dict" in state:
-            state = state["state_dict"]
-            
-        # print(model.model)
-        
-        if args["reset_head"]:
-            model.model.fc.reset_parameters()
-            
-        
-        if args["replace_fc"]:
-            model.model.fc = torch.nn.Linear(model.model.fc.in_features, out_features,bias=False)
-        
+            state = state["state_dict"]                    
         
         model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
                                          state.items()))
+        
+        if args["reset_head"]:
+            model.model.fc.reset_parameters()  
         
 
     loggers = []
