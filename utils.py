@@ -1,23 +1,24 @@
 from git import RemoteProgress
 import torch
-from pytorch_lightning.callbacks import ModelCheckpoint
 from tqdm import tqdm
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 
-class MyCheckpoint(ModelCheckpoint):
-
-    def __init__(self, **kwargs):
-        super(MyCheckpoint, self).__init__(**kwargs)
-
-    def on_fit_start(self, trainer, pl_module):
-        super(MyCheckpoint, self).on_pretrain_routine_start(trainer, pl_module)
-        if self.save_top_k == -1:
+class ExtendedModelCheckpoint(ModelCheckpoint):
+    
+    CHECKPOINT_NAME_FIRST = "first"
+    
+    def __init__(self, save_first=False, **kwargs):
+        super().__init__(**kwargs)
+        self.save_first = save_first
+    
+    def on_train_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
+        super().on_train_start(trainer, pl_module)
+        if self.save_first:
             monitor_candidates = self._monitor_candidates(trainer)
-            last_filepath = self._get_metric_interpolated_filepath_name(
-                monitor_candidates, trainer
-            )
-            self._save_checkpoint(trainer, last_filepath)
-
+            filepath = self.format_checkpoint_name(monitor_candidates, self.CHECKPOINT_NAME_FIRST)
+            self._save_checkpoint(trainer, filepath)
+        
 
 class CloneProgress(RemoteProgress):
     def update(self, op_code, cur_count, max_count=None, message=''):
