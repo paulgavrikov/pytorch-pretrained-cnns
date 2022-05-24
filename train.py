@@ -50,9 +50,9 @@ def start_training(args):
         if args["replace_fc"]:
             # Replace only the last element from the sequential fc
             if isinstance(model.model.fc, torch.nn.Sequential):
-                model.model.fc[-1] = torch.nn.Linear(model.model.fc[-1].in_channels, data.num_classes)
+                model.model.fc[-1] = torch.nn.Linear(model.model.fc[-1].in_features, data.num_classes)
             else:
-                model.model.fc = torch.nn.Linear(model.model.fc.in_channels, data.num_classes)
+                model.model.fc = torch.nn.Linear(model.model.fc.in_features, data.num_classes)
 
     loggers = []
     csv_logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
