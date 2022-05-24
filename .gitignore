@@ -141,3 +141,7 @@ dmypy.json
 /datasets/cifar10/cifar-10-batches-py/readme.html
 /datasets/cifar10/cifar-10-batches-py/test_batch
 /.idea/vcs.xml
+.idea/aws.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/other.xml
+.idea/workspace.xml

@@ -29,14 +29,32 @@ def start_training(args):
     model = TrainModule(args)
     if args["load_checkpoint"] is not None:
         state = torch.load(args["load_checkpoint"], map_location=model.device)
+
+        if args["replace_fc"]:
+            num_classes = state['hyper_parameters']['hparams']['num_classes']
+            in_channels = state['hyper_parameters']['hparams']['in_channels']
+
+            args["num_classes"] = num_classes
+            args["in_channels"] = in_channels
+
+            model = TrainModule(args)
+
         if "state_dict" in state:
             state = state["state_dict"]
-        
-        model.model.load_state_dict(dict((key.replace("model.", ""), value) for (key, value) in
-                                         state.items()))
-        
+
+        model.model.load_state_dict(
+            dict((key.replace("model.", "").replace("classifier", "fc"), value) for (key, value) in
+                 state.items()))
+
         if args["reset_head"]:
             model.model.fc.reset_parameters()
+
+        if args["replace_fc"]:
+            # Replace only the last element from the sequential fc
+            if isinstance(model.model.fc, torch.nn.Sequential):
+                model.model.fc[-1] = torch.nn.Linear(model.model.fc[-1].in_features, data.num_classes)
+            else:
+                model.model.fc = torch.nn.Linear(model.model.fc.in_features, data.num_classes)
 
     loggers = []
     csv_logger = CSVLogger(os.path.join(args["output_dir"], args["dataset"]), args["classifier"] + args["postfix"])
@@ -107,7 +125,7 @@ def wandb_sweep(args):
             args[config_key] = v
             print(f"Setting {config_key}={v}")
             start_training(args)
-            
+
 def main(args):
     if type(args) is not dict:
         args = vars(args)
@@ -131,11 +149,12 @@ if __name__ == "__main__":
     parser.add_argument("--params", type=str, default=None)  # load params from json
 
     parser.add_argument("--checkpoints", type=str, default="last_best", choices=["all", "last_best", None])
-    
+
     parser.add_argument("--classifier", type=str)
     parser.add_argument("--dataset", type=str)
     parser.add_argument("--load_checkpoint", type=str, default=None)
     parser.add_argument("--reset_head", type=str2bool, default=False)
+    parser.add_argument("--replace_fc", type=str2bool, default=False)
     parser.add_argument("--output_dir", type=str, default="./output")
     parser.add_argument("--postfix", type=str, default="")
 
@@ -145,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=min(8, os.cpu_count()))
     parser.add_argument("--cudnn_non_deterministic", type=str2bool, default=True)
     parser.add_argument("--gpu_id", type=str, default="0")
-    
+
     parser.add_argument("--learning_rate", type=float, default=1e-2)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
@@ -161,7 +180,7 @@ if __name__ == "__main__":
     parser.add_argument("--profiler", type=str, default=None)
     parser.add_argument("--wandb", type=str, default=None)
     parser.add_argument("--wandb_sweepid", type=str, default=None)
-    
+
     parser.add_argument("--extra1", type=str, default=None)
     parser.add_argument("--extra2", type=str, default=None)
 
