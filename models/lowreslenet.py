@@ -18,7 +18,7 @@ class LowResLeNet5(nn.Module):
             nn.Sigmoid(),
             nn.AvgPool2d(kernel_size=(2, 2), stride=2),
         )
-        self.classifier = nn.Sequential(
+        self.fc = nn.Sequential(
             nn.LazyLinear(120),
             nn.Sigmoid(),
             nn.Linear(120, 84),
@@ -29,7 +29,7 @@ class LowResLeNet5(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
         x = torch.flatten(x, 1)
-        x = self.classifier(x)
+        x = self.fc(x)
         return x
 
 

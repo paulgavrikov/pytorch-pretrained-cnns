@@ -27,7 +27,7 @@ class LowResVGG(nn.Module):
         # self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
-        self.classifier = nn.Sequential(
+        self.fc = nn.Sequential(
             nn.Linear(512 * 1 * 1, 4096),
             # nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(True),
@@ -44,7 +44,7 @@ class LowResVGG(nn.Module):
         x = self.features(x)
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        x = self.classifier(x)
+        x = self.fc(x)
         return x
 
     def _initialize_weights(self):

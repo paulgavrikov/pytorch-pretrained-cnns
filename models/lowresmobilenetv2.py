@@ -97,8 +97,8 @@ class LowResMobileNetV2(nn.Module):
         # make it nn.Sequential
         self.features = nn.Sequential(*features)
 
-        # building classifier
-        self.classifier = nn.Sequential(
+        # building classifier/fc
+        self.fc = nn.Sequential(
             nn.Dropout(0.2),
             nn.Linear(self.last_channel, num_classes),
         )
@@ -119,7 +119,7 @@ class LowResMobileNetV2(nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = x.mean([2, 3])
-        x = self.classifier(x)
+        x = self.fc(x)
         return x
 
 
