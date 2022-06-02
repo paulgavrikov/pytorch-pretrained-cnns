@@ -12,8 +12,8 @@ import models
 from utils import *
 import logging
 from pprint import pprint
-import wandb
 from functools import partial
+import wandb
 
 
 def start_training(args):
@@ -116,16 +116,6 @@ def prepare_data(args):
     next(iter(data.val_dataloader()))
     print("Dataset is ready.")
 
-def wandb_sweep(args):
-    wandb.init()
-    config = wandb.config
-    for k, v in vars(config).items():
-        if k.startswith("hparams/"):
-            config_key = k.replace("hparams/", "")
-            args[config_key] = v
-            print(f"Setting {config_key}={v}")
-            start_training(args)
-
 def main(args):
     if type(args) is not dict:
         args = vars(args)
@@ -136,14 +126,12 @@ def main(args):
         prepare_data(args)
     elif args["mode"] == "info":
         dump_info()
-    elif args["mode"] == "wandbsweep":
-        wandb.agent(args["wandb_sweepid"], function=partial(wandb_sweep, args=args))
 
         
 if __name__ == "__main__":
     parser = ArgumentParser()
     
-    parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata", "wandbsweep"])
+    parser.add_argument("--mode", type=str, default="train", choices=["train", "info", "initdata"])
 
     parser.add_argument("--data_dir", type=str, default="./datasets")
     parser.add_argument("--params", type=str, default=None)  # load params from json
