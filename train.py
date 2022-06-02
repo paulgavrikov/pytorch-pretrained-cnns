@@ -157,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=float, default=1e-2)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.9)
-    parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd"])
+    parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd", "adagrad", "rmsprop", "adamw"])
     parser.add_argument("--scheduler", type=none_or_str, default=None,
                         choices=["WarmupCosine", "Step", "FrankleStep", "None", None])
     parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])

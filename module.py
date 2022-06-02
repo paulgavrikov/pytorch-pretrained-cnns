@@ -31,14 +31,14 @@ def rand_bbox(size, lam):
 class TrainModule(pl.LightningModule):
     def __init__(self, hparams):
         super().__init__()
-        
+
         self.myhparams = hparams
-        self.save_hyperparameters()    
+        self.save_hyperparameters()
         self.model = models.get_model(self.myhparams["classifier"])(in_channels=hparams["in_channels"],
-                                                                  num_classes=hparams["num_classes"])
+                                                                    num_classes=hparams["num_classes"])
         self.acc_max = 0
         self.cutmix_beta = 1
-        
+
     def forward(self, batch):
         images, labels = batch
         if self.myhparams["aux_loss"] == 0 or not self.model.training:
@@ -54,7 +54,8 @@ class TrainModule(pl.LightningModule):
                 lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
                 # compute output
                 predictions = self.model(images)
-                loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (1. - lam)
+                loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (
+                        1. - lam)
             else:
                 predictions = self.model(images)
                 loss = F.cross_entropy(predictions, labels)
@@ -64,60 +65,62 @@ class TrainModule(pl.LightningModule):
             for aux_output in aux_outputs:
                 loss += F.cross_entropy(aux_output, labels) ** 2
             loss = torch.sqrt(loss)
-            
+
         accuracy = torchmetrics.functional.accuracy(predictions, labels)
         return {"loss": loss, "accuracy": accuracy * 100}
 
     def training_step(self, batch, batch_nb):
         return self.forward(batch)
 
-    def training_epoch_end(self, outs):  
+    def training_epoch_end(self, outs):
         loss = torch.stack([x["loss"] for x in outs]).mean().item()
         accuracy = torch.stack([x["accuracy"] for x in outs]).mean().item()
-        
+
         self.log("loss/train", loss)
         self.log("acc/train", accuracy, prog_bar=True)
-    
+
     def validation_step(self, batch, batch_nb):
         return self.forward(batch)
-    
+
     def training_step_end(self, outs):
         self.log("acc/train", outs["accuracy"], prog_bar=True)
-        self.log("loss/train", outs["loss"])       
+        self.log("loss/train", outs["loss"])
 
     def validation_epoch_end(self, outs):
         loss = torch.stack([x["loss"] for x in outs]).mean().item()
         accuracy = torch.stack([x["accuracy"] for x in outs]).mean().item()
-        
+
         self.log("loss/val", loss)
         if accuracy > self.acc_max:
             self.acc_max = accuracy
-        
+
         self.log("acc_max/val", self.acc_max, prog_bar=True)
-        self.log("acc/val", accuracy, prog_bar=True)        
+        self.log("acc/val", accuracy, prog_bar=True)
 
     def test_step(self, batch, batch_nb):
         loss, accuracy = self.forward(batch)
         self.log("acc/test", accuracy)
 
     def configure_optimizers(self):
-        
+
         if self.myhparams["freeze"] == "conv":
             for module in self.model.modules():
                 if type(module) == torch.nn.Conv2d:
                     for param in module.parameters():
                         param.requires_grad = False
-        
+
         params = filter(lambda p: p.requires_grad, self.model.parameters())
-        
+
         if self.myhparams["verbose"]:
             print()
             print("TRAINABLE PARAMETERS:")
-            pprint([f"{name} {p.shape}" for name, p in filter(lambda p: p[1].requires_grad, self.model.named_parameters())])
-            print(f"TOTAL: {sum(list(map(lambda p: p.numel(), filter(lambda p: p.requires_grad, self.model.parameters()))))}")
-        
+            pprint([f"{name} {p.shape}" for name, p in
+                    filter(lambda p: p[1].requires_grad, self.model.named_parameters())])
+            print(
+                f"TOTAL: {sum(list(map(lambda p: p.numel(), filter(lambda p: p.requires_grad, self.model.parameters()))))}")
+
         optimizers, schedulers = [], []
-        
+
         if self.myhparams["optimizer"] == "sgd":
             optimizers.append(torch.optim.SGD(
                 params,
@@ -126,8 +129,26 @@ class TrainModule(pl.LightningModule):
                 momentum=self.myhparams["momentum"],
                 nesterov=True
             ))
-        else:
+        elif self.myhparams["optimizer"] == "adam":
             optimizers.append(torch.optim.Adam(
+                params,
+                lr=self.myhparams["learning_rate"],
+                weight_decay=self.myhparams["weight_decay"]
+            ))
+        elif self.myhparams["optimizer"] == "adagrad":
+            optimizers.append(torch.optim.Adagrad(
+                params,
+                lr=self.myhparams["learning_rate"],
+                weight_decay=self.myhparams["weight_decay"]
+            ))
+        elif self.myhparams["optimizer"] == "rmsprop":
+            optimizers.append(torch.optim.RMSprop(
+                params,
+                lr=self.myhparams["learning_rate"],
+                weight_decay=self.myhparams["weight_decay"]
+            ))
+        elif self.myhparams["optimizer"] == "adamw":
+            optimizers.append(torch.optim.AdamW(
                 params,
                 lr=self.myhparams["learning_rate"],
                 weight_decay=self.myhparams["weight_decay"]
