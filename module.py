@@ -48,8 +48,8 @@ class TrainModule(pl.LightningModule):
                 rand_index = torch.randperm(images.size()[0]).to(images.device)
                 target_a = labels
                 target_b = labels[rand_index]
-                bbx1, bby1, bbx2, bby2 = rand_bbox(ims.size(), lam)
-                ims[:, :, bbx1:bbx2, bby1:bby2] = ims[rand_index, :, bbx1:bbx2, bby1:bby2]
+                bbx1, bby1, bbx2, bby2 = rand_bbox(images.size(), lam)
+                images[:, :, bbx1:bbx2, bby1:bby2] = images[rand_index, :, bbx1:bbx2, bby1:bby2]
                 # adjust lambda to exactly match pixel ratio
                 lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
                 # compute output
