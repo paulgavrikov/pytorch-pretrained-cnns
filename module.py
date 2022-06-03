@@ -53,11 +53,13 @@ class TrainModule(pl.LightningModule):
             # adjust lambda to exactly match pixel ratio
             lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
             # compute output
-            predictions = self.model(images)
+
+        predictions = self.model(images)
+
+        if self.cutmix_beta > 0 and r < self.myhparams["cutmix_prob"]:
             loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (
                     1. - lam)
         else:
-            predictions = self.model(images)
             loss = F.cross_entropy(predictions, labels)
 
         accuracy = torchmetrics.functional.accuracy(predictions, labels)
@@ -97,9 +99,9 @@ class TrainModule(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        if self.myhparams["freeze"] == "conv":
+        if self.myhparams["freeze"]:
             for module in self.model.modules():
-                if type(module) == torch.nn.Conv2d:
+                if str(type(module)) == self.myhparams["freeze"].split(","):
                     for param in module.parameters():
                         param.requires_grad = False
 

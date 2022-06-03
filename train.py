@@ -160,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument("--optimizer", type=str, default="sgd", choices=["adam", "sgd", "adagrad", "rmsprop", "adamw"])
     parser.add_argument("--scheduler", type=none_or_str, default=None,
                         choices=["WarmupCosine", "Step", "FrankleStep", "None", None])
-    parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])
+    parser.add_argument("--freeze", type=none_or_str, default=None)
     parser.add_argument("--cutmix_prob", type=float, default=0)
 
     parser.add_argument("--seed", type=int, default=0)
