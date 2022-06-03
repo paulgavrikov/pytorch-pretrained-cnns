@@ -40,7 +40,7 @@ def start_training(args):
             state = state["state_dict"]
 
         model.model.load_state_dict(
-            dict((key.replace("model.", "").replace("classifier", "fc"), value) for (key, value) in
+            dict((key.replace("model.", "").replace(".classifier", ".fc"), value) for (key, value) in
                  state.items()))
 
         if args["reset_head"]:
