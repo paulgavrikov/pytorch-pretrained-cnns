@@ -41,30 +41,24 @@ class TrainModule(pl.LightningModule):
 
     def forward(self, batch):
         images, labels = batch
-        if self.myhparams["aux_loss"] == 0 or not self.model.training:
-            r = np.random.rand(1)
-            if self.cutmix_beta > 0 and r < self.myhparams["cutmix_prob"]:
-                lam = np.random.beta(self.cutmix_beta, self.cutmix_beta)
-                rand_index = torch.randperm(images.size()[0]).to(images.device)
-                target_a = labels
-                target_b = labels[rand_index]
-                bbx1, bby1, bbx2, bby2 = rand_bbox(images.size(), lam)
-                images[:, :, bbx1:bbx2, bby1:bby2] = images[rand_index, :, bbx1:bbx2, bby1:bby2]
-                # adjust lambda to exactly match pixel ratio
-                lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
-                # compute output
-                predictions = self.model(images)
-                loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (
-                        1. - lam)
-            else:
-                predictions = self.model(images)
-                loss = F.cross_entropy(predictions, labels)
+
+        r = np.random.rand(1)
+        if self.cutmix_beta > 0 and r < self.myhparams["cutmix_prob"]:
+            lam = np.random.beta(self.cutmix_beta, self.cutmix_beta)
+            rand_index = torch.randperm(images.size()[0]).to(images.device)
+            target_a = labels
+            target_b = labels[rand_index]
+            bbx1, bby1, bbx2, bby2 = rand_bbox(images.size(), lam)
+            images[:, :, bbx1:bbx2, bby1:bby2] = images[rand_index, :, bbx1:bbx2, bby1:bby2]
+            # adjust lambda to exactly match pixel ratio
+            lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (images.size()[-1] * images.size()[-2]))
+            # compute output
+            predictions = self.model(images)
+            loss = F.cross_entropy(predictions, target_a) * lam + F.cross_entropy(predictions, target_b) * (
+                    1. - lam)
         else:
-            predictions, aux_outputs = self.model(images)
-            loss = F.cross_entropy(predictions, labels) ** 2
-            for aux_output in aux_outputs:
-                loss += F.cross_entropy(aux_output, labels) ** 2
-            loss = torch.sqrt(loss)
+            predictions = self.model(images)
+            loss = F.cross_entropy(predictions, labels)
 
         accuracy = torchmetrics.functional.accuracy(predictions, labels)
         return {"loss": loss, "accuracy": accuracy * 100}

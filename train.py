@@ -162,7 +162,6 @@ if __name__ == "__main__":
                         choices=["WarmupCosine", "Step", "FrankleStep", "None", None])
     parser.add_argument("--freeze", type=none_or_str, default=None, choices=["conv", "None", None])
     parser.add_argument("--cutmix_prob", type=float, default=0)
-    parser.add_argument("--aux_loss", action="store_true")
 
     parser.add_argument("--seed", type=int, default=0)
 

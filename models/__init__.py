@@ -8,7 +8,7 @@ from .lowresresnet import lowres_resnet14, lowres_resnet18, lowres_resnet18_nore
     lowres_resnext50_32x4d, lowres_resnext101_32x8d
 from .lowresvgg import lowres_vgg11_bn, lowres_vgg13_bn, lowres_vgg16_bn, lowres_vgg19_bn, lowres_vgg11, lowres_vgg13, \
     lowres_vgg16, lowres_vgg19
-from .lowresresnet9 import lowres_resnet9, lowres_auxresnet9
+from .lowresresnet9 import lowres_resnet9
 from .lowresalexnet import lowres_alexnet
 from .lowreslenet import lowres_lenet5
 
@@ -38,7 +38,6 @@ all_classifiers = {
     "lowres_resnext50_32x4d": lowres_resnext50_32x4d,
     "lowres_resnext101_32x8d": lowres_resnext101_32x8d,
     "lowres_resnet9": lowres_resnet9,
-    "lowres_auxresnet9": lowres_auxresnet9,
     "lowres_densenet121": lowres_densenet121,
     "lowres_densenet161": lowres_densenet161,
     "lowres_densenet169": lowres_densenet169,
