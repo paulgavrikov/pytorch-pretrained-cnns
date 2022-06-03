@@ -168,7 +168,6 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", type=str2bool, default=False)
     parser.add_argument("--profiler", type=str, default=None)
     parser.add_argument("--wandb", type=str, default=None)
-    parser.add_argument("--wandb_sweepid", type=str, default=None)
 
     parser.add_argument("--extra1", type=str, default=None)
     parser.add_argument("--extra2", type=str, default=None)
