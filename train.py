@@ -68,6 +68,8 @@ def start_training(args):
 
     lr_monitor = LearningRateMonitor(log_momentum=True)
     callbacks.append(lr_monitor)
+    time_monitor = TimeMonitor()
+    callbacks.append(time_monitor)
 
     if args["checkpoints"]:
         checkpoint_cb = ExtendedModelCheckpoint(save_first=True, monitor="acc/val", mode="max", save_top_k=1,
