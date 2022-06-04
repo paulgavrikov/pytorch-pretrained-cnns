@@ -4,7 +4,7 @@ import json
 import argparse
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.loggers import CSVLogger, WandbLogger
-from pytorch_lightning.callbacks import RichProgressBar
+from pytorch_lightning.callbacks import RichProgressBar, LearningRateMonitor
 from module import TrainModule
 import data as datasets
 import models
@@ -65,6 +65,9 @@ def start_training(args):
         loggers.append(wandb_logger)
 
     callbacks = []
+
+    lr_monitor = LearningRateMonitor(log_momentum=True)
+    callbacks.append(lr_monitor)
 
     if args["checkpoints"]:
         checkpoint_cb = ExtendedModelCheckpoint(save_first=True, monitor="acc/val", mode="max", save_top_k=1,
