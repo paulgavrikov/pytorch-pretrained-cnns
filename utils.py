@@ -22,7 +22,7 @@ class ExtendedModelCheckpoint(ModelCheckpoint):
             self._save_checkpoint(trainer, filepath)
 
 
-class TimeMonitor(base):
+class TimeMonitor(base.Callback):
 
     def __init__(self):
         super(TimeMonitor, self).__init__()
