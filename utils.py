@@ -2,6 +2,7 @@ from git import RemoteProgress
 import torch
 from tqdm import tqdm
 from pytorch_lightning.callbacks import ModelCheckpoint
+import argparse
 
 
 class ExtendedModelCheckpoint(ModelCheckpoint):
