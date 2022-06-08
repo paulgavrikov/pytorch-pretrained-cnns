@@ -155,6 +155,7 @@ if __name__ == "__main__":
     parser.add_argument("--precision", type=int, default=32, choices=[16, 32])
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--max_epochs", type=int, default=100)
+    parser.add_argument("--start_step", type=int, default=0)
     parser.add_argument("--num_workers", type=int, default=min(8, os.cpu_count()))
     parser.add_argument("--cudnn_non_deterministic", type=str2bool, default=True)
     parser.add_argument("--gpu_id", type=str, default="0")
