@@ -27,12 +27,6 @@ class TimeMonitor(base.Callback):
     def __init__(self):
         super(TimeMonitor, self).__init__()
 
-    def on_train_start(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        self.log("start_time", datetime.datetime.now().timestamp())
-
-    def on_train_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule") -> None:
-        self.log("end_time", datetime.datetime.now().timestamp())
-
 
 class CloneProgress(RemoteProgress):
     def update(self, op_code, cur_count, max_count=None, message=''):
