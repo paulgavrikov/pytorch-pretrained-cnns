@@ -82,7 +82,7 @@ def start_training(args):
     trainer = Trainer(
         fast_dev_run=False,
         logger=loggers,
-        gpus=-1,
+        accelerator="auto",
         deterministic=not args["cudnn_non_deterministic"],
         benchmark=True,
         enable_model_summary=False,
