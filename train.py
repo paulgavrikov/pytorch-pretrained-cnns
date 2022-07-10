@@ -82,7 +82,7 @@ def start_training(args):
     trainer = Trainer(
         fast_dev_run=False,
         logger=loggers,
-        accelerator="auto",
+        accelerator=args["accelerator"],
         deterministic=not args["cudnn_non_deterministic"],
         benchmark=True,
         enable_model_summary=False,
@@ -173,6 +173,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--verbose", type=str2bool, default=False)
     parser.add_argument("--profiler", type=str, default=None)
+    parser.add_argument("--accelerator", type=str, default="auto")
     parser.add_argument("--wandb", type=str, default=None)
 
     parser.add_argument("--extra1", type=str, default=None)
