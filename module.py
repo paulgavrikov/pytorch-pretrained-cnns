@@ -104,7 +104,7 @@ class TrainModule(pl.LightningModule):
 
         if self.myhparams["freeze"]:
             for module in self.model.modules():
-                if str(type(module)) == self.myhparams["freeze"].split(","):
+                if type(module).__name__ in self.myhparams["freeze"].split(","):
                     for param in module.parameters():
                         param.requires_grad = False
 
