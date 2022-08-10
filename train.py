@@ -11,11 +11,14 @@ import models
 from utils import *
 from pprint import pprint
 import wandb
+import warnings
+from pytorch_lightning.utilities.warnings import PossibleUserWarning
 
+warnings.filterwarnings("ignore", category=PossibleUserWarning)
 
 def start_training(args):
     seed_everything(args["seed"])
-    os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
+    # os.environ["CUDA_VISIBLE_DEVICES"] = args["gpu_id"]
 
     data_dir = os.path.join(args["data_dir"], args["dataset"])
     data = datasets.get_dataset(args["dataset"])(data_dir, args["batch_size"], args["num_workers"])
@@ -78,11 +81,17 @@ def start_training(args):
 
     progress_bar_cb = RichProgressBar()
     callbacks.append(progress_bar_cb)
+    
+    gpus = list(map(int, args["gpu_id"].split(",")))
+    
+    if args["verbose"]:
+        print(f"GPUs {gpus}")
 
     trainer = Trainer(
         fast_dev_run=False,
         logger=loggers,
-        accelerator=args["accelerator"],
+        accelerator="gpu", 
+        devices=gpus,
         deterministic=not args["cudnn_non_deterministic"],
         benchmark=True,
         enable_model_summary=False,
